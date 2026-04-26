@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="Trivia.vcxproj" />
+  <Project Path="Trivia.vcxproj" Id="c2728cef-db5f-4284-b31d-43d8ac30f545" />
 </Solution>
