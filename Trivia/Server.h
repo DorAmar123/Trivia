@@ -6,6 +6,7 @@
 #include <thread>
 #include "IRequestHandler.h"
 #include "LoginRequestHandler.h"
+#include "IDatabase.h"
 
 class Server {
 public:
@@ -19,4 +20,6 @@ private:
 
 	SOCKET _serverSocket;
 	std::map<SOCKET, IRequestHandler*> m_clients;
+
+	IDatabase* m_database;
 };
