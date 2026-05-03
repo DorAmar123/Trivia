@@ -32,13 +32,16 @@ void LoginManager::logout(const std::string& username)
 	m_loggedUsers.erase(
 		std::remove_if(m_loggedUsers.begin(), m_loggedUsers.end(),
 			[&username](const LoggedUser& u) { return u.getUsername() == username; }),
-		m_loggedUsers.end());
+		m_loggedUsers.end()
+	);
 }
 
 bool LoginManager::isUserLoggedIn(const std::string& username) const
 {
 	for (const auto& u : m_loggedUsers)
+	{
 		if (u.getUsername() == username)
 			return true;
+	}
 	return false;
 }
