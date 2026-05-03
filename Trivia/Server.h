@@ -8,7 +8,8 @@
 #include "LoginRequestHandler.h"
 #include "IDatabase.h"
 
-class Server {
+class Server
+{
 public:
 	Server();
 	~Server();
