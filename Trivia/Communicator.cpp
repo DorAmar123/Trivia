@@ -10,7 +10,6 @@
 Communicator::Communicator(RequestHandlerFactory* factory) : m_handlerFactory(factory), m_serverSocket(INVALID_SOCKET)
 {
 }
-
 Communicator::~Communicator()
 {
 	try
