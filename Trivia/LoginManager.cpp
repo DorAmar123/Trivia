@@ -1,26 +1,35 @@
 #include "LoginManager.h"
-#include <algorithm>
 
-LoginManager::LoginManager(IDatabase* db) : m_database(db)
+LoginManager::LoginManager(IDatabase* db)
 {
+	m_database = db;
 }
 
 bool LoginManager::login(const std::string& username, const std::string& password)
 {
-	if (!m_database->doesUserExist(username))
-		return false;
-	if (!m_database->doesPasswordMatch(username, password))
-		return false;
-	if (isUserLoggedIn(username))
+	if (isUsernameValid(username) == false)
 		return false;
 
-	m_loggedUsers.push_back(LoggedUser(username));
+	if (m_database->doesUserExist(username) == false)
+		return false;
+
+	if (m_database->doesPasswordMatch(username, password) == false)
+		return false;
+
+	if (isUserLoggedIn(username) == true)
+		return false;
+
+	LoggedUser user(username);
+	m_loggedUsers.push_back(user);
 	return true;
 }
 
 bool LoginManager::signup(const std::string& username, const std::string& password, const std::string& email)
 {
-	if (m_database->doesUserExist(username))
+	if (isUsernameValid(username) == false)
+		return false;
+
+	if (m_database->doesUserExist(username) == true)
 		return false;
 
 	m_database->addNewUser(username, password, email);
@@ -29,19 +38,43 @@ bool LoginManager::signup(const std::string& username, const std::string& passwo
 
 void LoginManager::logout(const std::string& username)
 {
-	m_loggedUsers.erase(
-		std::remove_if(m_loggedUsers.begin(), m_loggedUsers.end(),
-			[&username](const LoggedUser& u) { return u.getUsername() == username; }),
-		m_loggedUsers.end()
-	);
+	for (unsigned int i = 0; i < m_loggedUsers.size(); i++)
+	{
+		if (m_loggedUsers[i].getUsername() == username)
+		{
+			m_loggedUsers.erase(m_loggedUsers.begin() + i);
+			return;
+		}
+	}
 }
 
 bool LoginManager::isUserLoggedIn(const std::string& username) const
 {
-	for (const auto& u : m_loggedUsers)
+	for (unsigned int i = 0; i < m_loggedUsers.size(); i++)
 	{
-		if (u.getUsername() == username)
+		if (m_loggedUsers[i].getUsername() == username)
 			return true;
 	}
 	return false;
+}
+
+bool LoginManager::isUsernameValid(const std::string& username) const
+{
+	if (username.empty() == true)
+		return false;
+
+	if (username.length() > 20)
+		return false;
+
+	for (unsigned int i = 0; i < username.length(); i++)
+	{
+		char c = username[i];
+		bool isLetter = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+		bool isDigit = (c >= '0' && c <= '9');
+		bool isUnderscore = (c == '_');
+
+		if (isLetter == false && isDigit == false && isUnderscore == false)
+			return false;
+	}
+	return true;
 }
