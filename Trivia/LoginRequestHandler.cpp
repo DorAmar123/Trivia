@@ -18,45 +18,66 @@ bool LoginRequestHandler::isRequestRelevant(const RequestInfo& info)
 
 RequestResult LoginRequestHandler::handleRequest(const RequestInfo& info)
 {
-	if (info.id == LOGIN_CODE)
-		return login(info);
-	return signup(info);
+	try
+	{
+		if (info.id == LOGIN_CODE)
+			return login(info);
+		return signup(info);
+	}
+	catch (std::exception& e)
+	{
+		std::cout << "Error handling request: " << e.what() << std::endl;
+		RequestResult result;
+		ErrorResponse err;
+		err.message = "Server error";
+		result.response = JsonResponsePacketSerializer::serializeErrorResponse(err);
+		result.newHandler = nullptr;
+		return result;
+	}
 }
 
 RequestResult LoginRequestHandler::login(const RequestInfo& info)
 {
+	RequestResult result;
 	LoginRequest req = JsonRequestPacketDeserializer::deserializeLoginRequest(info.buffer);
 	std::cout << "Login attempt: " << req.username << std::endl;
 
-	if (m_handlerFactory->getLoginManager().login(req.username, req.password))
+	bool ok = m_handlerFactory->getLoginManager().login(req.username, req.password);
+	if (ok == true)
 	{
 		LoginResponse res;
 		res.status = 1;
-		return { JsonResponsePacketSerializer::serializeLoginResponse(res),
-				 m_handlerFactory->createMenuRequestHandler() };
+		result.response = JsonResponsePacketSerializer::serializeLoginResponse(res);
+		result.newHandler = m_handlerFactory->createMenuRequestHandler();
+		return result;
 	}
 
 	ErrorResponse err;
 	err.message = "Wrong username or password";
-	return { JsonResponsePacketSerializer::serializeErrorResponse(err),
-			 m_handlerFactory->createLoginRequestHandler() };
+	result.response = JsonResponsePacketSerializer::serializeErrorResponse(err);
+	result.newHandler = m_handlerFactory->createLoginRequestHandler();
+	return result;
 }
 
 RequestResult LoginRequestHandler::signup(const RequestInfo& info)
 {
+	RequestResult result;
 	SignupRequest req = JsonRequestPacketDeserializer::deserializeSignupRequest(info.buffer);
 	std::cout << "Signup attempt: " << req.username << std::endl;
 
-	if (m_handlerFactory->getLoginManager().signup(req.username, req.password, req.email))
+	bool ok = m_handlerFactory->getLoginManager().signup(req.username, req.password, req.email);
+	if (ok == true)
 	{
 		SignupResponse res;
 		res.status = 1;
-		return { JsonResponsePacketSerializer::serializeSignupResponse(res),
-				 m_handlerFactory->createMenuRequestHandler() };
+		result.response = JsonResponsePacketSerializer::serializeSignupResponse(res);
+		result.newHandler = m_handlerFactory->createMenuRequestHandler();
+		return result;
 	}
 
 	ErrorResponse err;
 	err.message = "Username already exists";
-	return { JsonResponsePacketSerializer::serializeErrorResponse(err),
-			 m_handlerFactory->createLoginRequestHandler() };
+	result.response = JsonResponsePacketSerializer::serializeErrorResponse(err);
+	result.newHandler = m_handlerFactory->createLoginRequestHandler();
+	return result;
 }

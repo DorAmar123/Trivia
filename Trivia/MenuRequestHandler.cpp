@@ -7,5 +7,7 @@ bool MenuRequestHandler::isRequestRelevant(const RequestInfo& info)
 
 RequestResult MenuRequestHandler::handleRequest(const RequestInfo& info)
 {
-	return { {}, nullptr };
+	RequestResult result;
+	result.newHandler = nullptr;
+	return result;
 }

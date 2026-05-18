@@ -5,6 +5,15 @@ SIGNUP_CODE = 2
 PORT        = 8826
 
 
+def is_username_valid(username):
+    if len(username) == 0 or len(username) > 20:
+        return False
+    for c in username:
+        if not (c.isalnum() or c == '_'):
+            return False
+    return True
+
+
 def send_recv(sock, code, json_str):
     data = json_str.encode('utf-8')
     msg  = bytes([code]) + len(data).to_bytes(4, byteorder='big') + data
@@ -14,6 +23,32 @@ def send_recv(sock, code, json_str):
     resp_size = int.from_bytes(sock.recv(4), byteorder='big')
     resp_data = sock.recv(resp_size).decode('utf-8')
     return int.from_bytes(resp_code, 'big'), resp_data
+
+
+def try_login(sock, username, password):
+    if is_username_valid(username) == False:
+        print("bad username")
+        return None, None
+    body = '{"username": "' + username + '", "password": "' + password + '"}'
+    code, data = send_recv(sock, LOGIN_CODE, body)
+    print("got:", code, data)
+    return code, data
+
+
+def try_signup(sock, username, password, mail):
+    if is_username_valid(username) == False:
+        print("bad username")
+        return None, None
+    body = '{"username": "' + username + '", "password": "' + password + '", "mail": "' + mail + '"}'
+    code, data = send_recv(sock, SIGNUP_CODE, body)
+    print("got:", code, data)
+    return code, data
+
+
+def open_connection(port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect(('127.0.0.1', port))
+    return s
 
 
 def main():
@@ -29,22 +64,44 @@ def main():
         return
 
     try:
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect(('127.0.0.1', port))
+        print("login without signup")
+        s = open_connection(port)
+        try_login(s, "user1", "1234")
+        s.close()
 
-        # Login
-        login_json = '{"username": "user1", "password": "1234"}'
-        code, data = send_recv(client_socket, LOGIN_CODE, login_json)
-        print(f"Login Response - Code: {code}, Data: {data}")
+        print()
+        print("signup")
+        s = open_connection(port)
+        try_signup(s, "user1", "1234", "user1@gmail.com")
+        s.close()
 
-        # Signup
-        signup_json = '{"username": "user1", "password": "1234", "email": "user1@gmail.com"}'
-        code, data = send_recv(client_socket, SIGNUP_CODE, signup_json)
-        print(f"Signup Response - Code: {code}, Data: {data}")
+        print()
+        print("signup again same name")
+        s = open_connection(port)
+        try_signup(s, "user1", "1234", "user1@gmail.com")
+        s.close()
 
-        client_socket.close()
-    except Exception:
-        print("Error")
+        print()
+        print("login")
+        s1 = open_connection(port)
+        try_login(s1, "user1", "1234")
+
+        print()
+        print("login twice")
+        s2 = open_connection(port)
+        try_login(s2, "user1", "1234")
+        s2.close()
+        s1.close()
+
+        print()
+        print("bad usernames")
+        s = open_connection(port)
+        try_login(s, "", "1234")
+        try_login(s, "bad name!", "1234")
+        s.close()
+
+    except Exception as e:
+        print("Error:", e)
 
 
 if __name__ == "__main__":

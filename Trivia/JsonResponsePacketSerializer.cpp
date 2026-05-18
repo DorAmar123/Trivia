@@ -26,9 +26,9 @@ std::vector<unsigned char> JsonResponsePacketSerializer::serializeLoginResponse(
     }
 
     // data
-    for (unsigned char c : jsonStr)
+    for (unsigned int i = 0; i < jsonStr.size(); i++)
     {
-        buffer.push_back(c);
+        buffer.push_back(jsonStr[i]);
     }
 
     return buffer;
@@ -51,9 +51,9 @@ std::vector<unsigned char> JsonResponsePacketSerializer::serializeSignupResponse
         buffer.push_back((size >> (i * 8)) & 0xFF);
     }
 
-    for (unsigned char c : jsonStr)
+    for (unsigned int i = 0; i < jsonStr.size(); i++)
     {
-        buffer.push_back(c);
+        buffer.push_back(jsonStr[i]);
     }
 
     return buffer;
@@ -75,9 +75,9 @@ std::vector<unsigned char> JsonResponsePacketSerializer::serializeErrorResponse(
         buffer.push_back((size >> (i * 8)) & 0xFF);
     }
 
-    for (unsigned char c : jsonStr)
+    for (unsigned int i = 0; i < jsonStr.length(); i++)
     {
-        buffer.push_back(c);
+        buffer.push_back(jsonStr[i]);
     }
 
     return buffer;
