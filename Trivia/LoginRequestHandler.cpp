@@ -1,4 +1,5 @@
 #include "LoginRequestHandler.h"
+#include "MenuRequestHandler.h"
 #include "RequestHandlerFactory.h"
 #include "JsonRequestPacketDeserializer.h"
 #include "JsonResponsePacketSerializer.h"

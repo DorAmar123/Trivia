@@ -1,5 +1,6 @@
 #include "Communicator.h"
 #include "JsonResponsePacketSerializer.h"
+#include "LoginRequestHandler.h"
 #include <iostream>
 #include <thread>
 #include <exception>

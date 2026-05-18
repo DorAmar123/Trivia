@@ -64,28 +64,33 @@ def main():
         return
 
     try:
+        # try to login before the user exists - should fail
         print("login without signup")
         s = open_connection(port)
         try_login(s, "user1", "1234")
         s.close()
 
+        # signup a new user - should work
         print()
         print("signup")
         s = open_connection(port)
         try_signup(s, "user1", "1234", "user1@gmail.com")
         s.close()
 
+        # signup with the same name again - should fail
         print()
         print("signup again same name")
         s = open_connection(port)
         try_signup(s, "user1", "1234", "user1@gmail.com")
         s.close()
 
+        # login with the user we just created - should work
         print()
         print("login")
         s1 = open_connection(port)
         try_login(s1, "user1", "1234")
-
+ 
+        # second login while the first is still open - should fail
         print()
         print("login twice")
         s2 = open_connection(port)
@@ -93,6 +98,7 @@ def main():
         s2.close()
         s1.close()
 
+        # empty name and a name with a space + ! - client should reject before sending
         print()
         print("bad usernames")
         s = open_connection(port)
