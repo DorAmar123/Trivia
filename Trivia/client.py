@@ -60,6 +60,9 @@ def signup(sock):
         return
 
     password = input("Password: ")
+    if len(password) == 0:
+        print("Password cannot be empty!")
+        return
     email = input("Email: ")
 
     payload = {"username": username, "password": password, "mail": email}

@@ -66,6 +66,11 @@ bool SqliteDataBase::doesPasswordMatch(const std::string& username, const std::s
 
 void SqliteDataBase::addNewUser(const std::string& username, const std::string& password, const std::string& email)
 {
+	if (username.empty() || password.empty() || email.empty())
+	{
+		throw std::runtime_error("Username, password, or email cannot be empty");
+	}
+
 	std::string sql = "INSERT INTO USERS (USERNAME, PASSWORD, EMAIL) VALUES ('" + username + "', '" + password + "', '" + email + "');";
 	char* err = nullptr;
 
