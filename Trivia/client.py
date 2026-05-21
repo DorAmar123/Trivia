@@ -56,13 +56,13 @@ def signup(sock):
     print("\n--- Signup ---")
     username = input("Username: ")
     if not is_username_valid(username):
-        print("Invalid username! (1-20 chars, letters/numbers/_ only)")
+        print("Invalid username!")
         return
 
     password = input("Password: ")
     email = input("Email: ")
 
-    payload = {"username": username, "password": password, "email": email}
+    payload = {"username": username, "password": password, "mail": email}
     send_packet(sock, SIGNUP_CODE, payload)
 
     code, response = recv_packet(sock)
