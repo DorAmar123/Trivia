@@ -24,7 +24,7 @@ SignupRequest JsonRequestPacketDeserializer::deserializeSignupRequest(const std:
     SignupRequest req;
     req.username = j["username"].get<std::string>();
     req.password = j["password"].get<std::string>();
-    req.email = j["email"].get<std::string>();
+    req.email = j["mail"].get<std::string>();
 
     return req;
 }
