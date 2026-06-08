@@ -1,58 +1,39 @@
 #include "RoomManager.h"
 #include <stdexcept>
 
-void RoomManager::createRoom(LoggedUser user, RoomData data)
+void RoomManager::createRoom(const LoggedUser& creator, const RoomData& roomData)
 {
-    // Check if room ID already exists
-    if (m_rooms.find(data.id) != m_rooms.end())
-    {
-        throw std::runtime_error("Room ID already exists");
-    }
-
-    Room newRoom(data);
-    newRoom.addUser(user); // The creator is the first user in the room
-    m_rooms.insert(std::pair<int, Room>(data.id, newRoom));
+	RoomData data = roomData;
+	data.id = m_nextRoomId++;
+	data.status = ROOM_OPEN;
+	m_rooms.emplace(data.id, Room(creator, data));
 }
 
-void RoomManager::deleteRoom(int ID)
+void RoomManager::deleteRoom(int roomId)
 {
-    auto it = m_rooms.find(ID);
-    if (it != m_rooms.end())
-    {
-        m_rooms.erase(it);
-    }
-    else
-    {
-        throw std::runtime_error("Room ID not found");
-    }
+	m_rooms.erase(roomId);
 }
 
-unsigned int RoomManager::getRoomState(int ID) const
+RoomStatus RoomManager::getRoomState(int roomId)
 {
-    auto it = m_rooms.find(ID);
-    if (it != m_rooms.end())
-    {
-        return it->second.getRoomData().isActive;
-    }
-    throw std::runtime_error("Room ID not found");
+	auto it = m_rooms.find(roomId);
+	if (it == m_rooms.end())
+		throw std::runtime_error("Room not found");
+	return it->second.getMetadata().status;
 }
 
 std::vector<RoomData> RoomManager::getRooms() const
 {
-    std::vector<RoomData> allRooms;
-    for (auto const& [id, room] : m_rooms)
-    {
-        allRooms.push_back(room.getRoomData());
-    }
-    return allRooms;
+	std::vector<RoomData> rooms;
+	for (const auto& pair : m_rooms)
+		rooms.push_back(pair.second.getMetadata());
+	return rooms;
 }
 
-Room& RoomManager::getRoom(int ID)
+Room& RoomManager::getRoom(int roomId)
 {
-    auto it = m_rooms.find(ID);
-    if (it != m_rooms.end())
-    {
-        return it->second;
-    }
-    throw std::runtime_error("Room ID not found");
+	auto it = m_rooms.find(roomId);
+	if (it == m_rooms.end())
+		throw std::runtime_error("Room not found");
+	return it->second;
 }

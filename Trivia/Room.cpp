@@ -1,37 +1,34 @@
 #include "Room.h"
+#include <algorithm>
 
-Room::Room(RoomData data) : m_metadata(data)
+Room::Room(const LoggedUser& creator, const RoomData& metadata)
+	: m_metadata(metadata)
 {
+	m_users.push_back(creator);
 }
 
-void Room::addUser(LoggedUser user)
+void Room::addUser(const LoggedUser& user)
 {
-    m_users.push_back(user);
+	m_users.push_back(user);
 }
 
-void Room::removeUser(LoggedUser user)
+void Room::removeUser(const std::string& username)
 {
-    for (auto it = m_users.begin(); it != m_users.end(); ++it)
-    {
-        if (it->getUsername() == user.getUsername())
-        {
-            m_users.erase(it);
-            break;
-        }
-    }
+	m_users.erase(
+		std::remove_if(m_users.begin(), m_users.end(),
+			[&username](const LoggedUser& u) { return u.getUsername() == username; }),
+		m_users.end());
 }
 
 std::vector<std::string> Room::getAllUsers() const
 {
-    std::vector<std::string> userNames;
-    for (const auto& user : m_users)
-    {
-        userNames.push_back(user.getUsername());
-    }
-    return userNames;
+	std::vector<std::string> names;
+	for (const auto& user : m_users)
+		names.push_back(user.getUsername());
+	return names;
 }
 
-RoomData Room::getRoomData() const
+RoomData Room::getMetadata() const
 {
-    return m_metadata;
+	return m_metadata;
 }

@@ -1,23 +1,19 @@
 #pragma once
-
 #include <vector>
-#include <string>
-#include <algorithm>
-#include "RoomData.h"
 #include "LoggedUser.h"
+#include "Responses.h"
 
-class Room 
+class Room
 {
 public:
-    Room(RoomData data);
+	Room(const LoggedUser& creator, const RoomData& metadata);
 
-    void addUser(LoggedUser user);
-    void removeUser(LoggedUser user);
-    std::vector<std::string> getAllUsers() const;
-
-    RoomData getRoomData() const;
+	void addUser(const LoggedUser& user);
+	void removeUser(const std::string& username);
+	std::vector<std::string> getAllUsers() const;
+	RoomData getMetadata() const;
 
 private:
-    RoomData m_metadata;
-    std::vector<LoggedUser> m_users;
+	RoomData m_metadata;
+	std::vector<LoggedUser> m_users;
 };

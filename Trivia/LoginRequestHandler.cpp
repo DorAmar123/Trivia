@@ -2,61 +2,61 @@
 #include "RequestHandlerFactory.h"
 #include "JsonRequestPacketDeserializer.h"
 #include "JsonResponsePacketSerializer.h"
-#include <iostream>
+#include "LoggedUser.h"
 
-#define LOGIN_CODE  1
-#define SIGNUP_CODE 2
+#include "MenuRequestHandler.h"
 
-LoginRequestHandler::LoginRequestHandler(RequestHandlerFactory* factory) : m_handlerFactory(factory)
+#define LOGIN_REQUEST_CODE  1
+#define SIGNUP_REQUEST_CODE 2
+
+LoginRequestHandler::LoginRequestHandler(LoginManager& loginManager, RequestHandlerFactory& handlerFactory)
+	: m_loginManager(loginManager), m_handlerFactory(handlerFactory)
 {
 }
 
-bool LoginRequestHandler::isRequestRelevant(const RequestInfo& info)
+bool LoginRequestHandler::isRequestRelevant(const RequestInfo& requestInfo)
 {
-	return info.id == LOGIN_CODE || info.id == SIGNUP_CODE;
+	return requestInfo.id == LOGIN_REQUEST_CODE || requestInfo.id == SIGNUP_REQUEST_CODE;
 }
 
-RequestResult LoginRequestHandler::handleRequest(const RequestInfo& info)
+RequestResult LoginRequestHandler::handleRequest(const RequestInfo& requestInfo)
 {
-	if (info.id == LOGIN_CODE)
-		return login(info);
-	return signup(info);
-}
-
-RequestResult LoginRequestHandler::login(const RequestInfo& info)
-{
-	LoginRequest req = JsonRequestPacketDeserializer::deserializeLoginRequest(info.buffer);
-	std::cout << "Login attempt: " << req.username << std::endl;
-
-	if (m_handlerFactory->getLoginManager().login(req.username, req.password))
-	{
-		LoginResponse res;
-		res.status = 1;
-		return { JsonResponsePacketSerializer::serializeLoginResponse(res),
-				 m_handlerFactory->createMenuRequestHandler() };
-	}
+	if (requestInfo.id == LOGIN_REQUEST_CODE)
+		return login(requestInfo);
+	if (requestInfo.id == SIGNUP_REQUEST_CODE)
+		return signup(requestInfo);
 
 	ErrorResponse err;
-	err.message = "Wrong username or password";
-	return { JsonResponsePacketSerializer::serializeErrorResponse(err),
-			 m_handlerFactory->createLoginRequestHandler() };
+	err.message = "Unknown request";
+	return { JsonResponsePacketSerializer::serializeErrorResponse(err), nullptr };
 }
 
-RequestResult LoginRequestHandler::signup(const RequestInfo& info)
+RequestResult LoginRequestHandler::login(const RequestInfo& requestInfo)
 {
-	SignupRequest req = JsonRequestPacketDeserializer::deserializeSignupRequest(info.buffer);
-	std::cout << "Signup attempt: " << req.username << std::endl;
+	LoginRequest req = JsonRequestPacketDeserializer::deserializeLoginRequest(requestInfo.buffer);
 
-	if (m_handlerFactory->getLoginManager().signup(req.username, req.password, req.email))
+	LoginResponse res;
+	IRequestHandler* nextHandler = nullptr;
+
+	if (m_loginManager.login(req.username, req.password))
 	{
-		SignupResponse res;
 		res.status = 1;
-		return { JsonResponsePacketSerializer::serializeSignupResponse(res),
-				 m_handlerFactory->createMenuRequestHandler() };
+		nextHandler = m_handlerFactory.createMenuRequestHandler(LoggedUser(req.username));
+	}
+	else
+	{
+		res.status = 0;
 	}
 
-	ErrorResponse err;
-	err.message = "Username already exists";
-	return { JsonResponsePacketSerializer::serializeErrorResponse(err),
-			 m_handlerFactory->createLoginRequestHandler() };
+	return { JsonResponsePacketSerializer::serializeLoginResponse(res), nextHandler };
+}
+
+RequestResult LoginRequestHandler::signup(const RequestInfo& requestInfo)
+{
+	SignupRequest req = JsonRequestPacketDeserializer::deserializeSignupRequest(requestInfo.buffer);
+
+	SignupResponse res;
+	res.status = m_loginManager.signup(req.username, req.password, req.email) ? 1 : 0;
+
+	return { JsonResponsePacketSerializer::serializeSignupResponse(res), nullptr };
 }
