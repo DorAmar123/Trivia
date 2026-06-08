@@ -5,7 +5,17 @@
 class JsonResponsePacketSerializer
 {
 public:
-    static std::vector<unsigned char> serializeLoginResponse(const LoginResponse& response);
-    static std::vector<unsigned char> serializeSignupResponse(const SignupResponse& response);
-    static std::vector<unsigned char> serializeErrorResponse(const ErrorResponse& response);
+	static std::vector<unsigned char> serializeLoginResponse(const LoginResponse& response);
+	static std::vector<unsigned char> serializeSignupResponse(const SignupResponse& response);
+	static std::vector<unsigned char> serializeErrorResponse(const ErrorResponse& response);
+	static std::vector<unsigned char> serializeLogoutResponse(const LogoutResponse& response);
+	static std::vector<unsigned char> serializeGetRoomsResponse(const GetRoomsResponse& response);
+	static std::vector<unsigned char> serializeGetPlayersInRoomResponse(const GetPlayersInRoomResponse& response);
+	static std::vector<unsigned char> serializeJoinRoomResponse(const JoinRoomResponse& response);
+	static std::vector<unsigned char> serializeCreateRoomResponse(const CreateRoomResponse& response);
+	static std::vector<unsigned char> serializeGetHighScoreResponse(const GetHighScoreResponse& response);
+	static std::vector<unsigned char> serializeGetPersonalStatsResponse(const GetPersonalStatsResponse& response);
+
+private:
+	static std::vector<unsigned char> buildPacket(unsigned char code, const std::string& jsonStr);
 };

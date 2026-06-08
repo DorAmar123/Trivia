@@ -1,8 +1,11 @@
 #include "Server.h"
-#include "SqliteDataBase.h"
+#include "SqliteDatabase.h"
+#include "RequestHandlerFactory.h"
+#include "Communicator.h"
 #include <iostream>
 #include <string>
 #include <exception>
+#include <thread>
 
 Server::Server()
 {
@@ -10,7 +13,7 @@ Server::Server()
 	if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0)
 		throw std::exception("Error");
 
-	m_database = new SqliteDataBase("trivia.db");
+	m_database = new SqliteDatabase();
 	m_handlerFactory = new RequestHandlerFactory(m_database);
 	m_communicator = new Communicator(m_handlerFactory);
 }

@@ -16,9 +16,20 @@ struct SignupRequest
 	std::string email;
 };
 
-struct RequestInfo
+struct GetPlayersInRoomRequest
 {
-	int id;
-	time_t receivalTime;
-	std::vector<unsigned char> buffer;
+	unsigned int roomId;
+};
+
+struct JoinRoomRequest
+{
+	unsigned int roomId;
+};
+
+struct CreateRoomRequest
+{
+	std::string roomName;
+	unsigned int maxUsers;
+	unsigned int questionCount;
+	unsigned int answerTimeout;
 };

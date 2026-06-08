@@ -1,18 +1,17 @@
 #pragma once
 #include <map>
-#include <vector>
-#include <string>
 #include "Room.h"
 
-class RoomManager 
+class RoomManager
 {
 public:
-    void createRoom(LoggedUser user, RoomData data);
-    void deleteRoom(int ID);
-    unsigned int getRoomState(int ID) const;
-    std::vector<RoomData> getRooms() const;
-    Room& getRoom(int ID);
+	void createRoom(const LoggedUser& creator, const RoomData& roomData);
+	void deleteRoom(int roomId);
+	RoomStatus getRoomState(int roomId);
+	std::vector<RoomData> getRooms() const;
+	Room& getRoom(int roomId);
 
 private:
-    std::map<int, Room> m_rooms;
+	std::map<int, Room> m_rooms;
+	int m_nextRoomId = 1;
 };

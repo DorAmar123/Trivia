@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "Requests.h"
+#include "JsonRequestPacketDeserializer.h"
 
 class IRequestHandler;
 
@@ -14,6 +14,6 @@ class IRequestHandler
 {
 public:
 	virtual ~IRequestHandler() = default;
-	virtual bool isRequestRelevant(const RequestInfo& info) = 0;
-	virtual RequestResult handleRequest(const RequestInfo& info) = 0;
+	virtual bool isRequestRelevant(const RequestInfo& requestInfo) = 0;
+	virtual RequestResult handleRequest(const RequestInfo& requestInfo) = 0;
 };
