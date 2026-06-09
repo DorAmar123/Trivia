@@ -17,4 +17,5 @@ private:
 	std::vector<LoggedUser> m_loggedUsers;
 
 	bool isUserLoggedIn(const std::string& username) const;
+	bool isUsernameValid(const std::string& username) const;
 };
