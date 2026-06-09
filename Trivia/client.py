@@ -1,125 +1,154 @@
 import socket
 import json
 
-# Constants
-LOGIN_CODE = 1
-SIGNUP_CODE = 2
-PORT_MIN = 1024
-PORT_MAX = 65535
+PORT = 8826
 
-def is_username_valid(username):
-    """Validates username: 1-20 chars, alphanumeric and underscores only."""
-    if not (0 < len(username) <= 20):
-        return False
-    for char in username:
-        if not (char.isalnum() or char == '_'):
-            return False
-    return True
+# Request codes
+LOGIN_CODE              = 1
+SIGNUP_CODE             = 2
+LOGOUT_CODE             = 3
+GET_ROOMS_CODE          = 4
+GET_PLAYERS_IN_ROOM_CODE = 5
+JOIN_ROOM_CODE          = 6
+CREATE_ROOM_CODE        = 7
+GET_PERSONAL_STATS_CODE = 8
+GET_HIGH_SCORE_CODE     = 9
 
-def send_packet(sock, code, data_dict):
-    """Serializes and sends a packet according to the protocol."""
-    json_str = json.dumps(data_dict)
-    data_bytes = json_str.encode('utf-8')
 
-    # Building the header: 1 byte Code + 4 bytes Size (Big Endian)
-    header = bytes([code]) + len(data_bytes).to_bytes(4, byteorder='big')
-    packet = header + data_bytes
+def send_request(sock, code, data: dict = {}):
+    body = json.dumps(data).encode('utf-8')
+    msg = bytes([code]) + len(body).to_bytes(4, byteorder='big') + body
+    sock.sendall(msg)
 
-    sock.sendall(packet)
 
-def recv_packet(sock):
-    """Receives and parses a packet from the server."""
-    try:
-        res_code = int.from_bytes(sock.recv(1), byteorder='big')
-        if res_code == 0:  # Server closed connection
-            return None, None
+def recv_response(sock):
+    code = int.from_bytes(sock.recv(1), 'big')
+    size = int.from_bytes(sock.recv(4), 'big')
+    data = json.loads(sock.recv(size).decode('utf-8')) if size > 0 else {}
+    return code, data
 
-        res_size = int.from_bytes(sock.recv(4), byteorder='big')
-        res_data = sock.recv(res_size).decode('utf-8')
 
-        return res_code, res_data
-    except Exception as e:
-        print(f"\n[!] Error receiving data: {e}")
-        return None, None
-
-def get_valid_port():
-    """Prompts for a valid port between 1024-65535."""
+def login_menu(sock):
     while True:
-        port_input = input(f"Enter server port ({PORT_MIN}-{PORT_MAX}): ")
-        if port_input.isdigit():
-            port = int(port_input)
-            if PORT_MIN <= port <= PORT_MAX:
-                return port
-        print(f"Invalid port. Please enter a number between {PORT_MIN} and {PORT_MAX}.")
+        print("\n--- Login / Signup ---")
+        print("1. Login")
+        print("2. Signup")
+        print("0. Exit")
+        choice = input("> ").strip()
 
-def signup(sock):
-    print("\n--- Signup ---")
-    username = input("Username: ")
-    if not is_username_valid(username):
-        print("Invalid username!")
-        return
+        if choice == "1":
+            username = input("Username: ")
+            password = input("Password: ")
+            send_request(sock, LOGIN_CODE, {"username": username, "password": password})
+            code, data = recv_response(sock)
+            print(f"Response ({code}): {data}")
+            if data.get("status") == 1:
+                print(f"Logged in as {username}")
+                return username
 
-    password = input("Password: ")
-    if len(password) == 0:
-        print("Password cannot be empty!")
-        return
-    email = input("Email: ")
+        elif choice == "2":
+            username = input("Username: ")
+            password = input("Password: ")
+            email    = input("Email: ")
+            send_request(sock, SIGNUP_CODE, {"username": username, "password": password, "email": email})
+            code, data = recv_response(sock)
+            print(f"Response ({code}): {data}")
 
-    payload = {"username": username, "password": password, "mail": email}
-    send_packet(sock, SIGNUP_CODE, payload)
+        elif choice == "0":
+            return None
 
-    code, response = recv_packet(sock)
-    print(f"\nServer Response Code: {code}")
-    print(f"Content: {response}")
 
-def login(sock):
-    print("\n--- Login ---")
-    username = input("Username: ")
-    if not is_username_valid(username):
-        print("Invalid username!")
-        return
+def main_menu(sock, username):
+    while True:
+        print(f"\n--- Menu ({username}) ---")
+        print("1. Get Rooms")
+        print("2. Get Players In Room")
+        print("3. Join Room")
+        print("4. Create Room")
+        print("5. Get Personal Stats")
+        print("6. Get High Score")
+        print("7. Logout")
+        print("0. Exit")
+        choice = input("> ").strip()
 
-    password = input("Password: ")
+        if choice == "1":
+            send_request(sock, GET_ROOMS_CODE)
+            code, data = recv_response(sock)
+            rooms = data.get("Rooms", [])
+            if rooms:
+                for r in rooms:
+                    print(f"  [{r['id']}] {r['name']} - {r['maxPlayers']} players, {r['numOfQuestionsInGame']} questions")
+            else:
+                print("  No rooms available.")
 
-    payload = {"username": username, "password": password}
-    send_packet(sock, LOGIN_CODE, payload)
+        elif choice == "2":
+            room_id = int(input("Room ID: "))
+            send_request(sock, GET_PLAYERS_IN_ROOM_CODE, {"roomId": room_id})
+            code, data = recv_response(sock)
+            print(f"Players: {data.get('PlayersInRoom', [])}")
 
-    code, response = recv_packet(sock)
-    print(f"\nServer Response Code: {code}")
-    print(f"Content: {response}")
+        elif choice == "3":
+            room_id = int(input("Room ID: "))
+            send_request(sock, JOIN_ROOM_CODE, {"roomId": room_id})
+            code, data = recv_response(sock)
+            print(f"Response ({code}): {data}")
+
+        elif choice == "4":
+            name      = input("Room name: ")
+            max_users = int(input("Max players: "))
+            questions = int(input("Number of questions: "))
+            timeout   = int(input("Answer timeout (seconds): "))
+            send_request(sock, CREATE_ROOM_CODE, {
+                "roomName": name,
+                "maxUsers": max_users,
+                "questionCount": questions,
+                "answerTimeout": timeout
+            })
+            code, data = recv_response(sock)
+            print(f"Response ({code}): {data}")
+
+        elif choice == "5":
+            send_request(sock, GET_PERSONAL_STATS_CODE)
+            code, data = recv_response(sock)
+            for stat in data.get("UserStatistics", []):
+                print(f"  {stat}")
+
+        elif choice == "6":
+            send_request(sock, GET_HIGH_SCORE_CODE)
+            code, data = recv_response(sock)
+            for entry in data.get("HighScores", []):
+                print(f"  {entry}")
+
+        elif choice == "7":
+            send_request(sock, LOGOUT_CODE)
+            code, data = recv_response(sock)
+            print(f"Logged out (status: {data.get('status')})")
+            return
+
+        elif choice == "0":
+            return
+
 
 def main():
-    print("Welcome to Trivia Tester 1.0.3")
-    port = get_valid_port()
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect(('127.0.0.1', PORT))
+        print(f"Connected to server on port {PORT}")
+    except Exception as e:
+        print(f"Could not connect: {e}")
+        return
 
     try:
-        # Create socket and connect
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.connect(('127.0.0.1', port))
-            print(f"Connected to 127.0.0.1:{port}")
-
-            while True:
-                print("\nMain Menu:")
-                print("1) Signup")
-                print("2) Login")
-                print("3) Exit")
-
-                choice = input("Select an option: ")
-
-                if choice == '1':
-                    signup(sock)
-                elif choice == '2':
-                    login(sock)
-                elif choice == '3':
-                    print("Exiting...")
-                    break
-                else:
-                    print("Invalid choice, try again.")
-
-    except ConnectionRefusedError:
-        print("\n[!] Connection failed. Is the server running?")
+        while True:
+            username = login_menu(sock)
+            if username is None:
+                break
+            main_menu(sock, username)
     except Exception as e:
-        print(f"\n[!] An error occurred: {e}")
+        print(f"Error: {e}")
+    finally:
+        sock.close()
+
 
 if __name__ == "__main__":
     main()
