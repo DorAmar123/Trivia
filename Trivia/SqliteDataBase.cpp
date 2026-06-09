@@ -1,67 +1,83 @@
 #include "SqliteDataBase.h"
-#include <stdexcept>
+#include <iostream>
 
-SqliteDataBase::SqliteDataBase() 
+static int foundRowCallback(void* data, int argc, char** argv, char** azColName)
 {
-    int result = sqlite3_open("TriviaDB.sqlite", &_db);
-    if (result != SQLITE_OK) 
-    {
-        _db = nullptr;
-        throw std::runtime_error("Failed to open SQLite database");
-    }
-
-    std::string sqlStatement = "CREATE TABLE IF NOT EXISTS USERS (USERNAME TEXT PRIMARY KEY NOT NULL, PASSWORD TEXT NOT NULL, EMAIL TEXT NOT NULL);";
-    executeSQL(sqlStatement);
+	bool* found = (bool*)data;
+	*found = true;
+	return 0;
 }
 
-SqliteDataBase::~SqliteDataBase() 
+SqliteDataBase::SqliteDataBase(const std::string& dbName)
 {
-    sqlite3_close(_db);
+	_db = nullptr;
+	int res = sqlite3_open(dbName.c_str(), &_db);
+	if (res != SQLITE_OK)
+	{
+		_db = nullptr;
+		throw std::exception("Failed to open database");
+	}
+
+	std::string create = "CREATE TABLE IF NOT EXISTS USERS (USERNAME TEXT PRIMARY KEY NOT NULL, PASSWORD TEXT NOT NULL, EMAIL TEXT NOT NULL);";
+	char* err = nullptr;
+	int result = sqlite3_exec(_db, create.c_str(), nullptr, nullptr, &err);
+	if (result != SQLITE_OK)
+	{
+		std::cout << "SQL error: " << err << std::endl;
+		sqlite3_free(err);
+	}
 }
 
-bool SqliteDataBase::doesUserExist(const std::string& username) 
+SqliteDataBase::~SqliteDataBase()
 {
-    bool exists = false;
-    std::string sql = "SELECT * FROM USERS WHERE USERNAME = '" + username + "';";
-
-    auto callback = [](void* data, int argc, char** argv, char** azColName) -> int {
-        *(bool*)data = true;
-        return 0;
-        };
-
-    sqlite3_exec(_db, sql.c_str(), callback, &exists, nullptr);
-    return exists;
+	if (_db != nullptr)
+		sqlite3_close(_db);
 }
 
-bool SqliteDataBase::doesPasswordMatch(const std::string& username, const std::string& password) 
+bool SqliteDataBase::doesUserExist(const std::string& username)
 {
-    bool match = false;
-    std::string sql = "SELECT * FROM USERS WHERE USERNAME = '" + username + "' AND PASSWORD = '" + password + "';";
+	bool exists = false;
+	std::string sql = "SELECT * FROM USERS WHERE USERNAME = '" + username + "';";
+	char* err = nullptr;
 
-    auto callback = [](void* data, int argc, char** argv, char** azColName) -> int {
-        *(bool*)data = true;
-        return 0;
-        };
-
-    sqlite3_exec(_db, sql.c_str(), callback, &match, nullptr);
-    return match;
+	int res = sqlite3_exec(_db, sql.c_str(), foundRowCallback, &exists, &err);
+	if (res != SQLITE_OK)
+	{
+		std::cout << "SQL error: " << err << std::endl;
+		sqlite3_free(err);
+	}
+	return exists;
 }
 
-void SqliteDataBase::addNewUser(const std::string& username, const std::string& password, const std::string& email) 
+bool SqliteDataBase::doesPasswordMatch(const std::string& username, const std::string& password)
 {
-    std::string sql = "INSERT INTO USERS (USERNAME, PASSWORD, EMAIL) VALUES ('" + username + "', '" + password + "', '" + email + "');";
-    executeSQL(sql);
+	bool match = false;
+	std::string sql = "SELECT * FROM USERS WHERE USERNAME = '" + username + "' AND PASSWORD = '" + password + "';";
+	char* err = nullptr;
+
+	int res = sqlite3_exec(_db, sql.c_str(), foundRowCallback, &match, &err);
+	if (res != SQLITE_OK)
+	{
+		std::cout << "SQL error: " << err << std::endl;
+		sqlite3_free(err);
+	}
+	return match;
 }
 
-void SqliteDataBase::executeSQL(const std::string& sql)
+void SqliteDataBase::addNewUser(const std::string& username, const std::string& password, const std::string& email)
 {
-    char* errMessage = nullptr;
-    int result = sqlite3_exec(_db, sql.c_str(), nullptr, nullptr, &errMessage);
-    if (result != SQLITE_OK) 
-    {
-        std::string error = "SQL Error: ";
-        error += errMessage;
-        sqlite3_free(errMessage);
-        throw std::runtime_error(error);
-    }
+	if (username.empty() || password.empty() || email.empty())
+	{
+		throw std::runtime_error("Username, password, or email cannot be empty");
+	}
+
+	std::string sql = "INSERT INTO USERS (USERNAME, PASSWORD, EMAIL) VALUES ('" + username + "', '" + password + "', '" + email + "');";
+	char* err = nullptr;
+
+	int res = sqlite3_exec(_db, sql.c_str(), nullptr, nullptr, &err);
+	if (res != SQLITE_OK)
+	{
+		std::cout << "SQL error: " << err << std::endl;
+		sqlite3_free(err);
+	}
 }

@@ -1,10 +1,9 @@
 #include "LoginRequestHandler.h"
+#include "MenuRequestHandler.h"
 #include "RequestHandlerFactory.h"
 #include "JsonRequestPacketDeserializer.h"
 #include "JsonResponsePacketSerializer.h"
 #include "LoggedUser.h"
-
-#include "MenuRequestHandler.h"
 
 #define LOGIN_REQUEST_CODE  1
 #define SIGNUP_REQUEST_CODE 2

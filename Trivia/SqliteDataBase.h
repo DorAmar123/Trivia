@@ -3,10 +3,10 @@
 #include "sqlite3.h"
 #include <string>
 
-class SqliteDataBase : public IDatabase 
+class SqliteDataBase : public IDatabase
 {
 public:
-    SqliteDataBase();
+    SqliteDataBase(const std::string& dbName);
     virtual ~SqliteDataBase();
 
     bool doesUserExist(const std::string& username) override;
@@ -15,6 +15,4 @@ public:
 
 private:
     sqlite3* _db;
-
-    void executeSQL(const std::string& sql);
 };

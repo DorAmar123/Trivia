@@ -1,5 +1,6 @@
 #include "JsonResponsePacketSerializer.h"
 #include "json.hpp"
+
 using json = nlohmann::json;
 
 #define LOGIN_CODE               1
