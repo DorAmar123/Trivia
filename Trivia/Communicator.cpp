@@ -103,7 +103,7 @@ void Communicator::handleNewClient(SOCKET clientSocket)
 				ErrorResponse err;
 				err.message = "Request not relevant to current state";
 				std::vector<unsigned char> errBytes = JsonResponsePacketSerializer::serializeErrorResponse(err);
-				int sentBytes = send(clientSocket, (char*)errBytes.data(), errBytes.size(), 0);
+				int sentBytes = send(clientSocket, (char*)errBytes.data(), (int)errBytes.size(), 0);
 				if (sentBytes == SOCKET_ERROR)
 				{
 					std::cout << "Error sending message to client" << std::endl;
@@ -113,7 +113,7 @@ void Communicator::handleNewClient(SOCKET clientSocket)
 			}
 
 			RequestResult result = handler->handleRequest(reqInfo);
-			int sentBytes = send(clientSocket, (char*)result.response.data(), result.response.size(), 0);
+			int sentBytes = send(clientSocket, (char*)result.response.data(), (int)result.response.size(), 0);
 			if (sentBytes == SOCKET_ERROR)
 			{
 				std::cout << "Error sending message to client" << std::endl;
