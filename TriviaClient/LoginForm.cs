@@ -18,8 +18,30 @@ public partial class LoginForm : Form
             return;
         }
 
-        // TODO: send login request via Communicator
-        MessageBox.Show("Login clicked! (not connected yet)", "Info");
+        try
+        {
+            if (!AppState.Communicator.IsConnected())
+                AppState.Communicator.Connect();
+
+            ServerResponse response = AppState.Communicator.SendAndReceive(
+                Serializer.SerializeLogin(username, password));
+
+            if (response.Code == ResponseCode.Login && Deserializer.GetStatus(response) == 1)
+            {
+                AppState.CurrentUsername = username;
+                MainMenuForm menu = new MainMenuForm();
+                menu.Show();
+                this.Hide();
+            }
+            else
+            {
+                MessageBox.Show("Login failed. Wrong username or password.", "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Could not connect to server:\n" + ex.Message, "Error");
+        }
     }
 
     private void btnGoToSignup_Click(object sender, EventArgs e)

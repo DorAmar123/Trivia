@@ -19,22 +19,38 @@ public partial class CreateRoomForm : Form
             return;
         }
 
-        if (!int.TryParse(timeStr, out int timePerQuestion) || timePerQuestion <= 0)
+        if (!int.TryParse(timeStr, out int answerTimeout) || answerTimeout <= 0)
         {
             MessageBox.Show("Time per question must be a positive number.", "Error");
             return;
         }
 
-        if (!int.TryParse(playersStr, out int maxPlayers) || maxPlayers < 2)
+        if (!int.TryParse(playersStr, out int maxUsers) || maxUsers < 2)
         {
             MessageBox.Show("Max players must be at least 2.", "Error");
             return;
         }
 
-        // TODO: send create room request via Communicator
-        WaitingRoomForm waiting = new WaitingRoomForm(roomName, "You (Admin)");
-        waiting.Show();
-        this.Hide();
+        try
+        {
+            ServerResponse response = AppState.Communicator.SendAndReceive(
+                Serializer.SerializeCreateRoom(roomName, maxUsers, 10, answerTimeout));
+
+            if (response.Code == ResponseCode.CreateRoom && Deserializer.GetStatus(response) == 1)
+            {
+                WaitingRoomForm waiting = new WaitingRoomForm(roomName, AppState.CurrentUsername + " (Admin)");
+                waiting.Show();
+                this.Hide();
+            }
+            else
+            {
+                MessageBox.Show("Failed to create room.", "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Error: " + ex.Message, "Error");
+        }
     }
 
     private void btnBack_Click(object sender, EventArgs e)

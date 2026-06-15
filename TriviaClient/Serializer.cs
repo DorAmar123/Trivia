@@ -65,9 +65,9 @@ public static class Serializer
         return Serialize(RequestCode.JoinRoom, new { roomId });
     }
 
-    public static byte[] SerializeCreateRoom(string roomName, int maxPlayers, int timePerQuestion)
+    public static byte[] SerializeCreateRoom(string roomName, int maxUsers, int questionCount, int answerTimeout)
     {
-        return Serialize(RequestCode.CreateRoom, new { roomName, maxPlayers, timePerQuestion });
+        return Serialize(RequestCode.CreateRoom, new { roomName, maxUsers, questionCount, answerTimeout });
     }
 
     public static byte[] SerializeGetPersonalStats()
