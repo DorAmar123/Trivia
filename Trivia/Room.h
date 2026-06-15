@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <mutex>
 #include "LoggedUser.h"
 #include "Responses.h"
 
@@ -16,4 +17,5 @@ public:
 private:
 	RoomData m_metadata;
 	std::vector<LoggedUser> m_users;
+	mutable std::mutex m_mutex;
 };

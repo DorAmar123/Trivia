@@ -7,6 +7,8 @@ LoginManager::LoginManager(IDatabase* db)
 
 bool LoginManager::login(const std::string& username, const std::string& password)
 {
+	std::lock_guard<std::mutex> lock(m_mutex);
+
 	if (isUsernameValid(username) == false)
 		return false;
 
@@ -26,6 +28,8 @@ bool LoginManager::login(const std::string& username, const std::string& passwor
 
 bool LoginManager::signup(const std::string& username, const std::string& password, const std::string& email)
 {
+	std::lock_guard<std::mutex> lock(m_mutex);
+
 	if (isUsernameValid(username) == false)
 		return false;
 
@@ -38,6 +42,8 @@ bool LoginManager::signup(const std::string& username, const std::string& passwo
 
 void LoginManager::logout(const std::string& username)
 {
+	std::lock_guard<std::mutex> lock(m_mutex);
+
 	for (unsigned int i = 0; i < m_loggedUsers.size(); i++)
 	{
 		if (m_loggedUsers[i].getUsername() == username)
