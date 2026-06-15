@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <mutex>
 #include "IDatabase.h"
 #include "LoggedUser.h"
 
@@ -15,6 +16,7 @@ public:
 private:
 	IDatabase* m_database;
 	std::vector<LoggedUser> m_loggedUsers;
+	mutable std::mutex m_mutex;
 
 	bool isUserLoggedIn(const std::string& username) const;
 	bool isUsernameValid(const std::string& username) const;

@@ -1,5 +1,6 @@
 #pragma once
 #include <map>
+#include <mutex>
 #include "Room.h"
 
 class RoomManager
@@ -14,4 +15,5 @@ public:
 private:
 	std::map<int, Room> m_rooms;
 	int m_nextRoomId = 1;
+	mutable std::mutex m_mutex;
 };
