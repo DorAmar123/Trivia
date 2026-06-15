@@ -1,4 +1,5 @@
 #pragma once
+
 #include <thread>
 #include "IDatabase.h"
 #include "RequestHandlerFactory.h"

@@ -2,6 +2,7 @@
 #include "IDatabase.h"
 #include "sqlite3.h"
 #include <string>
+#include <vector>
 
 class SqliteDatabase : public IDatabase
 {
@@ -27,11 +28,14 @@ public:
 
 private:
 	sqlite3* m_db;
-	const std::string m_dbFileName = "trivia.db";
 
 	void createTables();
-	bool isQuestionsTableEmpty();
 	void addQuestionsFromApi();
-	std::string httpGet(const std::wstring& host, const std::wstring& path);
-	static std::string decodeHtml(const std::string& html);
+	std::string fetchQuestionsJson();
+	std::string decodeHtml(const std::string& text);
+	int runQuery(const std::string& query);
+	bool queryBool(const std::string& query);
+	int queryInt(const std::string& query);
+	float queryFloat(const std::string& query);
+	std::string queryString(const std::string& query);
 };

@@ -1,5 +1,6 @@
 #include "Communicator.h"
 #include "JsonResponsePacketSerializer.h"
+#include "LoginRequestHandler.h"
 #include <iostream>
 #include <thread>
 #include <exception>
@@ -11,14 +12,16 @@
 Communicator::Communicator(RequestHandlerFactory* factory) : m_handlerFactory(factory), m_serverSocket(INVALID_SOCKET)
 {
 }
-
 Communicator::~Communicator()
 {
 	try
 	{
 		closesocket(m_serverSocket);
-		for (auto& client : m_clients)
-			delete client.second;
+		std::map<SOCKET, IRequestHandler*>::iterator it;
+		for (it = m_clients.begin(); it != m_clients.end(); it++)
+		{
+			delete it->second;
+		}
 		m_clients.clear();
 	}
 	catch (...) {}
@@ -88,20 +91,34 @@ void Communicator::handleNewClient(SOCKET clientSocket)
 			if (size > 0 && recv(clientSocket, (char*)data.data(), size, 0) <= 0)
 				break;
 
-			RequestInfo reqInfo = { codeBuf[0], time(NULL), data };
+			RequestInfo reqInfo;
+			reqInfo.id = codeBuf[0];
+			reqInfo.receivalTime = time(NULL);
+			reqInfo.buffer = data;
+
 			IRequestHandler* handler = m_clients[clientSocket];
 
-			if (!handler->isRequestRelevant(reqInfo))
+			if (handler->isRequestRelevant(reqInfo) == false)
 			{
 				ErrorResponse err;
 				err.message = "Request not relevant to current state";
-				auto errBytes = JsonResponsePacketSerializer::serializeErrorResponse(err);
-				send(clientSocket, (char*)errBytes.data(), errBytes.size(), 0);
+				std::vector<unsigned char> errBytes = JsonResponsePacketSerializer::serializeErrorResponse(err);
+				int sentBytes = send(clientSocket, (char*)errBytes.data(), (int)errBytes.size(), 0);
+				if (sentBytes == SOCKET_ERROR)
+				{
+					std::cout << "Error sending message to client" << std::endl;
+					break;
+				}
 				continue;
 			}
 
 			RequestResult result = handler->handleRequest(reqInfo);
-			send(clientSocket, (char*)result.response.data(), result.response.size(), 0);
+			int sentBytes = send(clientSocket, (char*)result.response.data(), (int)result.response.size(), 0);
+			if (sentBytes == SOCKET_ERROR)
+			{
+				std::cout << "Error sending message to client" << std::endl;
+				break;
+			}
 
 			if (result.newHandler != nullptr)
 			{
