@@ -5,29 +5,40 @@ public partial class MainMenuForm : Form
     public MainMenuForm()
     {
         InitializeComponent();
+        lblWelcome.Text = "Welcome, " + AppState.CurrentUsername + "!";
     }
 
     private void btnCreateRoom_Click(object sender, EventArgs e)
     {
-        // TODO: open CreateRoomForm
-        MessageBox.Show("Create Room clicked! (not connected yet)", "Info");
+        CreateRoomForm createRoom = new CreateRoomForm();
+        createRoom.Show();
+        this.Hide();
     }
 
     private void btnJoinRoom_Click(object sender, EventArgs e)
     {
-        // TODO: open JoinRoomForm
-        MessageBox.Show("Join Room clicked! (not connected yet)", "Info");
+        JoinRoomForm joinRoom = new JoinRoomForm();
+        joinRoom.Show();
+        this.Hide();
     }
 
     private void btnStatistics_Click(object sender, EventArgs e)
     {
-        // TODO: open StatisticsForm
-        MessageBox.Show("Statistics clicked! (not connected yet)", "Info");
+        StatisticsMenuForm stats = new StatisticsMenuForm();
+        stats.ShowDialog();
     }
 
     private void btnLogout_Click(object sender, EventArgs e)
     {
-        // TODO: send logout request via Communicator
+        try
+        {
+            AppState.Communicator.SendAndReceive(Serializer.SerializeLogout());
+        }
+        catch { }
+
+        AppState.Communicator.Disconnect();
+        AppState.CurrentUsername = "";
+
         LoginForm login = new LoginForm();
         login.Show();
         this.Close();

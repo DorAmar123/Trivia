@@ -26,7 +26,30 @@ public partial class SignupForm : Form
             return;
         }
 
-        MessageBox.Show("Signup clicked! (not connected yet)", "Info");
+        try
+        {
+            if (!AppState.Communicator.IsConnected())
+                AppState.Communicator.Connect();
+
+            ServerResponse response = AppState.Communicator.SendAndReceive(
+                Serializer.SerializeSignup(username, password, email));
+
+            if (response.Code == ResponseCode.Signup && Deserializer.GetStatus(response) == 1)
+            {
+                MessageBox.Show("Account created! Please log in.", "Success");
+                LoginForm login = new LoginForm();
+                login.Show();
+                this.Close();
+            }
+            else
+            {
+                MessageBox.Show("Signup failed. Username may already exist.", "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Could not connect to server:\n" + ex.Message, "Error");
+        }
     }
 
     private void btnBack_Click(object sender, EventArgs e)
