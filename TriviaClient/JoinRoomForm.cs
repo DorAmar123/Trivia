@@ -4,12 +4,38 @@ public partial class JoinRoomForm : Form
 {
     private List<RoomInfo> m_rooms = new List<RoomInfo>();
 
+    private Thread _refreshThread;
+    private bool _isWindowActive = true;
     public JoinRoomForm()
     {
         InitializeComponent();
         LoadRooms();
+
+        _refreshThread = new Thread(RefreshLoop);
+        _refreshThread.IsBackground = true;
+        _refreshThread.Start();
     }
 
+    private void RefreshLoop()
+    {
+        while (_isWindowActive)
+        {
+            Thread.Sleep(3000);
+
+            if (!_isWindowActive) break;
+
+            try
+            {
+                this.Invoke((MethodInvoker)delegate {
+                    LoadRooms();
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Rooms refresh error: " + ex.Message);
+            }
+        }
+    }
     private void LoadRooms()
     {
         lstRooms.Items.Clear();
@@ -26,7 +52,7 @@ public partial class JoinRoomForm : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show("Could not load rooms:\n" + ex.Message, "Error");
+            Console.WriteLine("Could not load rooms: " + ex.Message);
         }
     }
 
@@ -47,6 +73,8 @@ public partial class JoinRoomForm : Form
 
             if (response.Code == ResponseCode.JoinRoom && Deserializer.GetStatus(response) == 1)
             {
+                _isWindowActive = false;
+
                 WaitingRoomForm waiting = new WaitingRoomForm(selected.Name, "Admin");
                 waiting.Show();
                 this.Hide();
@@ -69,6 +97,12 @@ public partial class JoinRoomForm : Form
 
     private void btnBack_Click(object sender, EventArgs e)
     {
+        _isWindowActive = false;
         this.Close();
+    }
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        _isWindowActive = false;
+        base.OnFormClosing(e);
     }
 }
