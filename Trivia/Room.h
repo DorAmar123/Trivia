@@ -13,6 +13,7 @@ public:
 	void removeUser(const std::string& username);
 	std::vector<std::string> getAllUsers() const;
 	RoomData getMetadata() const;
+	void setStatus(RoomStatus status);
 
 private:
 	RoomData m_metadata;

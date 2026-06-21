@@ -34,7 +34,7 @@ RequestResult RoomAdminRequestHandler::handleRequest(const RequestInfo& requestI
 
 RequestResult RoomAdminRequestHandler::closeRoom(const RequestInfo& requestInfo)
 {
-    m_handlerFactory.getRoomManager().deleteRoom(m_room.getMetadata().id);
+    m_handlerFactory.getRoomManager().setRoomState(m_room.getMetadata().id, ROOM_CLOSE);
 
     CloseRoomResponse res = { 1 };
 

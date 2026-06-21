@@ -36,3 +36,8 @@ RoomData Room::getMetadata() const
 	std::lock_guard<std::mutex> lock(m_mutex);
 	return m_metadata;
 }
+
+void Room::setStatus(RoomStatus status)
+{
+	m_metadata.status = status;
+}
