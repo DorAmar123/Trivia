@@ -2,6 +2,8 @@
 #include "LoginManager.h"
 #include "RoomManager.h"
 #include "StatisticsManager.h"
+#include "RoomAdminRequestHandler.h"
+#include "RoomMemberRequestHandler.h"
 
 class LoginRequestHandler;
 class MenuRequestHandler;
@@ -18,6 +20,9 @@ public:
 	LoginManager& getLoginManager();
 	RoomManager& getRoomManager();
 	StatisticsManager& getStatisticsManager();
+
+	RoomAdminRequestHandler* createRoomAdminRequestHandler(const LoggedUser& user, Room& room);
+	RoomMemberRequestHandler* createRoomMemberRequestHandler(const LoggedUser& user, Room& room);
 
 private:
 	IDatabase* m_database;

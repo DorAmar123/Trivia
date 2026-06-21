@@ -31,3 +31,13 @@ StatisticsManager& RequestHandlerFactory::getStatisticsManager()
 {
 	return m_statisticsManager;
 }
+
+RoomAdminRequestHandler* RequestHandlerFactory::createRoomAdminRequestHandler(const LoggedUser& user, Room& room)
+{
+	return new RoomAdminRequestHandler(room, user, *this);
+}
+
+RoomMemberRequestHandler* RequestHandlerFactory::createRoomMemberRequestHandler(const LoggedUser& user, Room& room)
+{
+	return new RoomMemberRequestHandler(room, user, *this);
+}

@@ -46,3 +46,13 @@ Room& RoomManager::getRoom(int roomId)
 		throw std::runtime_error("Room not found");
 	return it->second;
 }
+
+void RoomManager::setRoomState(int roomId, RoomStatus status)
+{
+	std::lock_guard<std::mutex> lock(m_mutex);
+	auto it = m_rooms.find(roomId);
+	if (it != m_rooms.end())
+	{
+		it->second.setStatus(status);
+	}
+}
