@@ -15,6 +15,10 @@ public:
 	static std::vector<unsigned char> serializeCreateRoomResponse(const CreateRoomResponse& response);
 	static std::vector<unsigned char> serializeGetHighScoreResponse(const GetHighScoreResponse& response);
 	static std::vector<unsigned char> serializeGetPersonalStatsResponse(const GetPersonalStatsResponse& response);
+	static std::vector<unsigned char> serializeCloseRoomResponse(const CloseRoomResponse& response);
+	static std::vector<unsigned char> serializeStartGameResponse(const StartGameResponse& response);
+	static std::vector<unsigned char> serializeLeaveRoomResponse(const LeaveRoomResponse& response);
+	static std::vector<unsigned char> serializeGetRoomStateResponse(const GetRoomStateResponse& response);
 
 private:
 	static std::vector<unsigned char> buildPacket(unsigned char code, const std::string& jsonStr);
