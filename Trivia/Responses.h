@@ -71,3 +71,27 @@ struct GetPersonalStatsResponse
 	unsigned int status;
 	std::vector<std::string> statistics;
 };
+
+struct CloseRoomResponse
+{
+	unsigned int status;
+};
+
+struct StartGameResponse
+{
+	unsigned int status;
+};
+
+struct LeaveRoomResponse
+{
+	unsigned int status;
+};
+
+struct GetRoomStateResponse
+{
+	unsigned int status;
+	bool hasGameBegun;
+	std::vector<std::string> players;
+	unsigned int answerCount;
+	unsigned int answerTimeout;
+};

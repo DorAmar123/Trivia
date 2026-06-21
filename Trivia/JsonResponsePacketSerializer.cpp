@@ -13,7 +13,11 @@ using json = nlohmann::json;
 #define CREATE_ROOM_CODE         8
 #define GET_HIGH_SCORE_CODE      9
 #define GET_PERSONAL_STATS_CODE  10
-
+#define CLOSE_ROOM_CODE          11
+#define START_GAME_CODE          12
+#define LEAVE_ROOM_CODE          13
+#define GET_ROOM_STATE_CODE      14
+							     
 std::vector<unsigned char> JsonResponsePacketSerializer::buildPacket(unsigned char code, const std::string& jsonStr)
 {
 	std::vector<unsigned char> buffer;
@@ -112,4 +116,36 @@ std::vector<unsigned char> JsonResponsePacketSerializer::serializeGetPersonalSta
 	j["status"] = response.status;
 	j["UserStatistics"] = response.statistics;
 	return buildPacket(GET_PERSONAL_STATS_CODE, j.dump());
+}
+
+std::vector<unsigned char> JsonResponsePacketSerializer::serializeCloseRoomResponse(const CloseRoomResponse& response)
+{
+	json j;
+	j["status"] = response.status;
+	return buildPacket(CLOSE_ROOM_CODE, j.dump());
+}
+
+std::vector<unsigned char> JsonResponsePacketSerializer::serializeStartGameResponse(const StartGameResponse& response)
+{
+	json j;
+	j["status"] = response.status;
+	return buildPacket(START_GAME_CODE, j.dump());
+}
+
+std::vector<unsigned char> JsonResponsePacketSerializer::serializeLeaveRoomResponse(const LeaveRoomResponse& response)
+{
+	json j;
+	j["status"] = response.status;
+	return buildPacket(LEAVE_ROOM_CODE, j.dump());
+}
+
+std::vector<unsigned char> JsonResponsePacketSerializer::serializeGetRoomStateResponse(const GetRoomStateResponse& response)
+{
+	json j;
+	j["status"] = response.status;
+	j["hasGameBegun"] = response.hasGameBegun;
+	j["players"] = response.players;
+	j["answerCount"] = response.answerCount;
+	j["answerTimeout"] = response.answerTimeout;
+	return buildPacket(GET_ROOM_STATE_CODE, j.dump());
 }
