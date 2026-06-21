@@ -13,7 +13,11 @@ public enum RequestCode
     JoinRoom = 6,
     CreateRoom = 7,
     GetPersonalStats = 8,
-    GetHighScores = 9
+    GetHighScores = 9,
+    CloseRoom = 11,
+    StartGame = 12,
+    LeaveRoom = 13,
+    GetRoomState = 14
 }
 
 public static class Serializer
@@ -78,5 +82,25 @@ public static class Serializer
     public static byte[] SerializeGetHighScores()
     {
         return Serialize(RequestCode.GetHighScores, new { });
+    }
+
+    public static byte[] SerializeCloseRoom()
+    {
+        return Serialize(RequestCode.CloseRoom, new { });
+    }
+
+    public static byte[] SerializeStartGame()
+    {
+        return Serialize(RequestCode.StartGame, new { });
+    }
+
+    public static byte[] SerializeLeaveRoom()
+    {
+        return Serialize(RequestCode.LeaveRoom, new { });
+    }
+
+    public static byte[] SerializeGetRoomState()
+    {
+        return Serialize(RequestCode.GetRoomState, new { });
     }
 }

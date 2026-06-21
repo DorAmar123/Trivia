@@ -13,7 +13,11 @@ public enum ResponseCode
     JoinRoom = 7,
     CreateRoom = 8,
     GetHighScore = 9,
-    GetPersonalStats = 10
+    GetPersonalStats = 10,
+    CloseRoom = 11,
+    StartGame = 12,
+    LeaveRoom = 13,
+    GetRoomState = 14
 }
 
 public class ServerResponse
@@ -100,5 +104,21 @@ public static class Deserializer
             foreach (var item in arr.EnumerateArray())
                 stats.Add(item.GetString() ?? "");
         return stats;
+    }
+
+    public static bool GetHasGameBegun(ServerResponse response)
+    {
+        if (response.Data.TryGetProperty("hasGameBegun", out JsonElement hasBegun))
+            return hasBegun.GetBoolean();
+        return false;
+    }
+
+    public static List<string> GetRoomStatePlayers(ServerResponse response)
+    {
+        var players = new List<string>();
+        if (response.Data.TryGetProperty("players", out JsonElement arr))
+            foreach (var item in arr.EnumerateArray())
+                players.Add(item.GetString() ?? "");
+        return players;
     }
 }
