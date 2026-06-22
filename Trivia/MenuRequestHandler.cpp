@@ -81,14 +81,17 @@ RequestResult MenuRequestHandler::joinRoom(const RequestInfo& requestInfo)
 	JoinRoomResponse res;
 	try
 	{
-		m_handlerFactory.getRoomManager().getRoom(req.roomId).addUser(m_user);
+		Room& room = m_handlerFactory.getRoomManager().getRoom(req.roomId);
+		room.addUser(m_user);
 		res.status = 1;
+		return { JsonResponsePacketSerializer::serializeJoinRoomResponse(res),
+				 m_handlerFactory.createRoomMemberRequestHandler(m_user, room) };
 	}
 	catch (...)
 	{
 		res.status = 0;
+		return { JsonResponsePacketSerializer::serializeJoinRoomResponse(res), nullptr };
 	}
-	return { JsonResponsePacketSerializer::serializeJoinRoomResponse(res), nullptr };
 }
 
 RequestResult MenuRequestHandler::createRoom(const RequestInfo& requestInfo)
@@ -101,11 +104,13 @@ RequestResult MenuRequestHandler::createRoom(const RequestInfo& requestInfo)
 	data.numOfQuestionsInGame = req.questionCount;
 	data.timePerQuestion = req.answerTimeout;
 
-	m_handlerFactory.getRoomManager().createRoom(m_user, data);
+	int roomId = m_handlerFactory.getRoomManager().createRoom(m_user, data);
+	Room& room = m_handlerFactory.getRoomManager().getRoom(roomId);
 
 	CreateRoomResponse res;
 	res.status = 1;
-	return { JsonResponsePacketSerializer::serializeCreateRoomResponse(res), nullptr };
+	return { JsonResponsePacketSerializer::serializeCreateRoomResponse(res),
+			 m_handlerFactory.createRoomAdminRequestHandler(m_user, room) };
 }
 
 RequestResult MenuRequestHandler::getPersonalStats(const RequestInfo& requestInfo)
