@@ -33,3 +33,19 @@ struct CreateRoomRequest
 	unsigned int questionCount;
 	unsigned int answerTimeout;
 };
+
+struct CloseRoomRequest
+{
+};
+
+struct StartGameRequest
+{
+};
+
+struct GetRoomStateRequest
+{
+};
+
+struct LeaveRoomRequest
+{
+};

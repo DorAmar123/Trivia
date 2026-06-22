@@ -2,6 +2,7 @@
 #include "RequestHandlerFactory.h"
 #include "MenuRequestHandler.h"
 #include "JsonResponsePacketSerializer.h"
+#include "Responses.h"
 
 #define LEAVE_ROOM_CODE      13
 #define GET_ROOM_STATE_CODE  14
@@ -41,11 +42,12 @@ RequestResult RoomMemberRequestHandler::leaveRoom(const RequestInfo& requestInfo
 RequestResult RoomMemberRequestHandler::getRoomState(const RequestInfo& requestInfo)
 {
     GetRoomStateResponse res;
-    res.status = 1;
 
     RoomData metadata = m_room.getMetadata();
+    RoomStatus state = m_handlerFactory.getRoomManager().getRoomState(metadata.id);
 
-    res.hasGameBegun = false;
+    res.status = (state == ROOM_CLOSE) ? 0 : 1;
+    res.hasGameBegun = (state == ROOM_ACTIVE);
     res.players = m_room.getAllUsers();
     res.answerCount = metadata.numOfQuestionsInGame;
     res.answerTimeout = metadata.timePerQuestion;
