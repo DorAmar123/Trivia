@@ -4,12 +4,22 @@ public partial class WaitingRoomForm : Form
 {
     private Thread _refreshThread;
     private bool _isWindowActive = true;
-    public WaitingRoomForm(string roomName, string adminName)
+    private readonly bool _isAdmin;
+
+    public WaitingRoomForm(string roomName, string adminName, bool isAdmin = false)
     {
         InitializeComponent();
+        _isAdmin = isAdmin;
         lblRoomName.Text = "Room: " + roomName;
         lblAdmin.Text = "Admin: " + adminName;
         lstPlayers.Items.Add(adminName);
+
+        if (_isAdmin)
+        {
+            btnStartGame.Visible = true;
+            btnCloseRoom.Visible = true;
+            lblWaiting.Text = "You are the admin. Start the game when ready.";
+        }
 
         _refreshThread = new Thread(RefreshLoop);
         _refreshThread.IsBackground = true;
@@ -23,6 +33,45 @@ public partial class WaitingRoomForm : Form
         try
         {
             AppState.Communicator.SendAndReceive(Serializer.SerializeLeaveRoom());
+        }
+        catch { }
+
+        BackToMenu();
+    }
+
+    private void btnStartGame_Click(object sender, EventArgs e)
+    {
+        btnStartGame.Enabled = false;
+
+        try
+        {
+            ServerResponse response = AppState.Communicator.SendAndReceive(Serializer.SerializeStartGame());
+
+            if (Deserializer.GetStatus(response) == 1)
+            {
+                _isWindowActive = false;
+                OpenGameScreen();
+            }
+            else
+            {
+                btnStartGame.Enabled = true;
+                MessageBox.Show("Failed to start the game.", "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            btnStartGame.Enabled = true;
+            MessageBox.Show("Error: " + ex.Message, "Error");
+        }
+    }
+
+    private void btnCloseRoom_Click(object sender, EventArgs e)
+    {
+        _isWindowActive = false;
+
+        try
+        {
+            AppState.Communicator.SendAndReceive(Serializer.SerializeCloseRoom());
         }
         catch { }
 
