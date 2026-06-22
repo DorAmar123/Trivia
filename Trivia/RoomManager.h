@@ -6,7 +6,7 @@
 class RoomManager
 {
 public:
-	void createRoom(const LoggedUser& creator, const RoomData& roomData);
+	int createRoom(const LoggedUser& creator, const RoomData& roomData);
 	void deleteRoom(int roomId);
 	RoomStatus getRoomState(int roomId);
 	std::vector<RoomData> getRooms() const;
