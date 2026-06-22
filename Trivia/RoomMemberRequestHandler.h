@@ -9,13 +9,14 @@ class RequestHandlerFactory;
 class RoomMemberRequestHandler : public IRequestHandler
 {
 public:
-    RoomMemberRequestHandler(Room& room, const LoggedUser& user, RequestHandlerFactory& handlerFactory);
+    RoomMemberRequestHandler(int roomId, const LoggedUser& user, RequestHandlerFactory& handlerFactory);
 
     virtual bool isRequestRelevant(const RequestInfo& requestInfo) override;
     virtual RequestResult handleRequest(const RequestInfo& requestInfo) override;
+    std::string getLoggedUsername() const override { return m_user.getUsername(); }
 
 private:
-    Room& m_room;
+    int m_roomId;
     LoggedUser m_user;
     RequestHandlerFactory& m_handlerFactory;
 

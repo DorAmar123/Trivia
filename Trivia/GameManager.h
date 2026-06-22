@@ -14,6 +14,7 @@ public:
 	void deleteGame(int roomId);
 	Game& getGame(int roomId);
 	bool doesGameExist(int roomId) const;
+	void submitPlayerStats(int roomId, const std::string& username);
 
 private:
 	IDatabase* m_database;

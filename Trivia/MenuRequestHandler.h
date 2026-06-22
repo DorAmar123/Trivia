@@ -12,6 +12,7 @@ public:
 
 	bool isRequestRelevant(const RequestInfo& requestInfo) override;
 	RequestResult handleRequest(const RequestInfo& requestInfo) override;
+	std::string getLoggedUsername() const override { return m_user.getUsername(); }
 
 private:
 	RequestResult logout(const RequestInfo& requestInfo);

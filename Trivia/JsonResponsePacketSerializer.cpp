@@ -165,6 +165,7 @@ std::vector<unsigned char> JsonResponsePacketSerializer::serializeSubmitAnswerRe
 {
 	json j;
 	j["status"] = response.status;
+	j["correctAnswerId"] = response.correctAnswerId;
 	return buildPacket(SUBMIT_ANSWER_CODE, j.dump());
 }
 

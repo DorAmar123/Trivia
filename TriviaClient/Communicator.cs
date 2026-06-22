@@ -7,14 +7,19 @@ public class Communicator
     private TcpClient? m_client;
     private NetworkStream? m_stream;
 
+    private readonly object m_ioLock = new object();
+
     private const string SERVER_IP = "127.0.0.1";
     private const int SERVER_PORT = 8826;
+    private const int IO_TIMEOUT_MS = 10000;
 
     public void Connect()
     {
         m_client = new TcpClient();
         m_client.Connect(SERVER_IP, SERVER_PORT);
         m_stream = m_client.GetStream();
+        m_stream.ReadTimeout = IO_TIMEOUT_MS;
+        m_stream.WriteTimeout = IO_TIMEOUT_MS;
     }
 
     public void Disconnect()
@@ -40,8 +45,11 @@ public class Communicator
 
     public ServerResponse SendAndReceive(byte[] packet)
     {
-        SendRequest(packet);
-        return ReceiveResponse();
+        lock (m_ioLock)
+        {
+            SendRequest(packet);
+            return ReceiveResponse();
+        }
     }
 
     private ServerResponse ReceiveResponse()

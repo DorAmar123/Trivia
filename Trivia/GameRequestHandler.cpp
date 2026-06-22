@@ -9,9 +9,23 @@
 #define SUBMIT_ANSWER_CODE    17
 #define GET_GAME_RESULTS_CODE 18
 
-GameRequestHandler::GameRequestHandler(Game& game, const LoggedUser& user, RequestHandlerFactory& factory)
-	: m_game(game), m_user(user), m_handlerFactory(factory), m_questionStartTime(0)
+GameRequestHandler::GameRequestHandler(int roomId, const LoggedUser& user, RequestHandlerFactory& factory)
+	: m_roomId(roomId), m_user(user), m_handlerFactory(factory), m_questionStartTime(0), m_statsSubmitted(false)
 {
+}
+
+void GameRequestHandler::submitStatsOnce()
+{
+	if (m_statsSubmitted)
+		return;
+	m_statsSubmitted = true;
+	try
+	{
+		m_handlerFactory.getGameManager().submitPlayerStats(m_roomId, m_user.getUsername());
+	}
+	catch (...)
+	{
+	}
 }
 
 bool GameRequestHandler::isRequestRelevant(const RequestInfo& requestInfo)
@@ -39,6 +53,8 @@ RequestResult GameRequestHandler::handleRequest(const RequestInfo& requestInfo)
 
 RequestResult GameRequestHandler::leaveGame(const RequestInfo& requestInfo)
 {
+	submitStatsOnce();
+
 	LeaveGameResponse res = { 1 };
 	return { JsonResponsePacketSerializer::serializeLeaveGameResponse(res),
 			 m_handlerFactory.createMenuRequestHandler(m_user) };
@@ -47,7 +63,16 @@ RequestResult GameRequestHandler::leaveGame(const RequestInfo& requestInfo)
 RequestResult GameRequestHandler::getQuestion(const RequestInfo& requestInfo)
 {
 	m_questionStartTime = time(nullptr);
-	GetQuestionResponse res = m_game.getQuestionForUser(m_user.getUsername());
+	GetQuestionResponse res;
+	try
+	{
+		Game& game = m_handlerFactory.getGameManager().getGame(m_roomId);
+		res = game.getQuestionForUser(m_user.getUsername());
+	}
+	catch (...)
+	{
+		res.status = 0;
+	}
 	return { JsonResponsePacketSerializer::serializeGetQuestionResponse(res), this };
 }
 
@@ -59,12 +84,32 @@ RequestResult GameRequestHandler::submitAnswer(const RequestInfo& requestInfo)
 	m_questionStartTime = 0;
 
 	SubmitAnswerRequest req = JsonRequestPacketDeserializer::deserializeSubmitAnswerRequest(requestInfo.buffer);
-	SubmitAnswerResponse res = m_game.submitAnswer(m_user.getUsername(), req.answerId, timeSpent);
+	SubmitAnswerResponse res;
+	try
+	{
+		Game& game = m_handlerFactory.getGameManager().getGame(m_roomId);
+		res = game.submitAnswer(m_user.getUsername(), req.answerId, timeSpent);
+	}
+	catch (...)
+	{
+		res.status = 0;
+	}
 	return { JsonResponsePacketSerializer::serializeSubmitAnswerResponse(res), this };
 }
 
 RequestResult GameRequestHandler::getGameResults(const RequestInfo& requestInfo)
 {
-	GetGameResultsResponse res = m_game.getResults();
+	submitStatsOnce();
+
+	GetGameResultsResponse res;
+	try
+	{
+		Game& game = m_handlerFactory.getGameManager().getGame(m_roomId);
+		res = game.getResults();
+	}
+	catch (...)
+	{
+		res.status = 0;
+	}
 	return { JsonResponsePacketSerializer::serializeGetGameResultsResponse(res), this };
 }

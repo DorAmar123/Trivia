@@ -3,10 +3,12 @@ namespace TriviaClient;
 public partial class GameForm : Form
 {
     private int _correctAnswers = 0;
+    private int _wrongAnswers = 0;
     private int _totalQuestions = 0;
     private int _timeLeft = 0;
     private System.Windows.Forms.Timer _timer = new();
     private bool _answerSubmitted = false;
+    private bool _gameExitHandled = false;
 
     public GameForm()
     {
@@ -117,7 +119,11 @@ public partial class GameForm : Form
             ServerResponse response = AppState.Communicator.SendAndReceive(Serializer.SerializeSubmitAnswer(answerId));
             if (Deserializer.GetStatus(response) == 1)
             {
-                _correctAnswers++;
+                int correctId = Deserializer.GetCorrectAnswerId(response);
+                if (answerId == correctId)
+                    _correctAnswers++;
+                else
+                    _wrongAnswers++;
                 UpdateScoreLabel();
             }
         }
@@ -128,13 +134,20 @@ public partial class GameForm : Form
 
         Task.Delay(800).ContinueWith(_ =>
         {
-            this.Invoke((MethodInvoker)FetchAndDisplayQuestion);
+            if (IsDisposed || Disposing || !IsHandleCreated)
+                return;
+            try
+            {
+                this.Invoke((MethodInvoker)FetchAndDisplayQuestion);
+            }
+            catch (ObjectDisposedException) { }
+            catch (InvalidOperationException) { }
         });
     }
 
     private void UpdateScoreLabel()
     {
-        lblScore.Text = $"Correct: {_correctAnswers} / {_totalQuestions}";
+        lblScore.Text = $"Correct: {_correctAnswers}   Wrong: {_wrongAnswers}";
     }
 
     private void SetAnswerButtonsEnabled(bool enabled)
@@ -143,6 +156,13 @@ public partial class GameForm : Form
         btnAnswer2.Enabled = enabled;
         btnAnswer3.Enabled = enabled;
         btnAnswer4.Enabled = enabled;
+    }
+
+    private void SendLeaveGameOnce()
+    {
+        if (_gameExitHandled) return;
+        _gameExitHandled = true;
+        try { AppState.Communicator.SendAndReceive(Serializer.SerializeLeaveGame()); } catch { }
     }
 
     private void OpenResultsScreen()
@@ -159,17 +179,14 @@ public partial class GameForm : Form
             ResultsForm resultsForm = new ResultsForm(new List<PlayerResult>());
             resultsForm.Show();
         }
+        _gameExitHandled = true;
         this.Close();
     }
 
     private void btnLeaveGame_Click(object sender, EventArgs e)
     {
         _timer.Stop();
-        try
-        {
-            AppState.Communicator.SendAndReceive(Serializer.SerializeLeaveGame());
-        }
-        catch { }
+        SendLeaveGameOnce();
 
         MainMenuForm menu = new MainMenuForm();
         menu.Show();
@@ -179,6 +196,7 @@ public partial class GameForm : Form
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
         _timer.Stop();
+        SendLeaveGameOnce();
         base.OnFormClosing(e);
     }
 }

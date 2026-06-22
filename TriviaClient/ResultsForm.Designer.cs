@@ -26,7 +26,7 @@ partial class ResultsForm
 
         // Form
         this.Text = "Trivia - Game Results";
-        this.Size = new Size(500, 400);
+        this.ClientSize = new Size(490, 372);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.FormBorderStyle = FormBorderStyle.FixedSingle;
         this.MaximizeBox = false;

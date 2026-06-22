@@ -24,7 +24,7 @@ partial class JoinRoomForm
 
         // Form
         this.Text = "Trivia - Join Room";
-        this.Size = new Size(300, 340);
+        this.ClientSize = new Size(290, 348);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.FormBorderStyle = FormBorderStyle.FixedSingle;
         this.MaximizeBox = false;
