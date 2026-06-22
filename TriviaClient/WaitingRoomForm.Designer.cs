@@ -20,12 +20,14 @@ partial class WaitingRoomForm
         lstPlayers = new ListBox();
         lblWaiting = new Label();
         btnLeave = new Button();
+        btnStartGame = new Button();
+        btnCloseRoom = new Button();
 
         SuspendLayout();
 
         // Form
         this.Text = "Trivia - Waiting Room";
-        this.Size = new Size(300, 360);
+        this.Size = new Size(300, 400);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.FormBorderStyle = FormBorderStyle.FixedSingle;
         this.MaximizeBox = false;
@@ -69,6 +71,23 @@ partial class WaitingRoomForm
         btnLeave.Size = new Size(120, 30);
         btnLeave.Click += btnLeave_Click;
 
+        // btnStartGame (admin only)
+        btnStartGame.Text = "Start Game";
+        btnStartGame.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
+        btnStartGame.BackColor = Color.LightGreen;
+        btnStartGame.Location = new Point(20, 335);
+        btnStartGame.Size = new Size(120, 30);
+        btnStartGame.Visible = false;
+        btnStartGame.Click += btnStartGame_Click;
+
+        // btnCloseRoom (admin only)
+        btnCloseRoom.Text = "Close Room";
+        btnCloseRoom.BackColor = Color.LightCoral;
+        btnCloseRoom.Location = new Point(155, 335);
+        btnCloseRoom.Size = new Size(115, 30);
+        btnCloseRoom.Visible = false;
+        btnCloseRoom.Click += btnCloseRoom_Click;
+
         this.Controls.Add(lblTitle);
         this.Controls.Add(lblRoomName);
         this.Controls.Add(lblAdmin);
@@ -76,6 +95,8 @@ partial class WaitingRoomForm
         this.Controls.Add(lstPlayers);
         this.Controls.Add(lblWaiting);
         this.Controls.Add(btnLeave);
+        this.Controls.Add(btnStartGame);
+        this.Controls.Add(btnCloseRoom);
 
         ResumeLayout(false);
     }
@@ -87,4 +108,6 @@ partial class WaitingRoomForm
     private ListBox lstPlayers;
     private Label lblWaiting;
     private Button btnLeave;
+    private Button btnStartGame;
+    private Button btnCloseRoom;
 }
