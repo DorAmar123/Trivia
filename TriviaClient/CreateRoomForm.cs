@@ -39,7 +39,7 @@ public partial class CreateRoomForm : Form
             if (response.Code == ResponseCode.CreateRoom && Deserializer.GetStatus(response) == 1)
             {
                 AppState.AnswerTimeoutSeconds = answerTimeout;
-                WaitingRoomForm waiting = new WaitingRoomForm(roomName, AppState.CurrentUsername + " (Admin)");
+                WaitingRoomForm waiting = new WaitingRoomForm(roomName, AppState.CurrentUsername, isAdmin: true);
                 waiting.Show();
                 this.Hide();
             }
