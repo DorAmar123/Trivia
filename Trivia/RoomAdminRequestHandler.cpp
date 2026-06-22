@@ -2,6 +2,7 @@
 #include "RequestHandlerFactory.h"
 #include "JsonResponsePacketSerializer.h"
 #include "MenuRequestHandler.h"
+#include "GameRequestHandler.h"
 
 #define CLOSE_ROOM_CODE      11
 #define START_GAME_CODE      12
@@ -46,11 +47,12 @@ RequestResult RoomAdminRequestHandler::closeRoom(const RequestInfo& requestInfo)
 RequestResult RoomAdminRequestHandler::startGame(const RequestInfo& requestInfo)
 {
     m_handlerFactory.getRoomManager().setRoomState(m_room.getMetadata().id, ROOM_ACTIVE);
+    Game& game = m_handlerFactory.getGameManager().createGame(m_room);
 
     StartGameResponse res = { 1 };
 
     return { JsonResponsePacketSerializer::serializeStartGameResponse(res),
-             m_handlerFactory.createMenuRequestHandler(m_user) };
+             m_handlerFactory.createGameRequestHandler(m_user, game) };
 }
 
 RequestResult RoomAdminRequestHandler::getRoomState(const RequestInfo& requestInfo)
