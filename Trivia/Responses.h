@@ -107,6 +107,7 @@ struct LeaveGameResponse
 struct SubmitAnswerResponse
 {
 	unsigned int status;
+	unsigned int correctAnswerId;
 };
 
 struct GetQuestionResponse

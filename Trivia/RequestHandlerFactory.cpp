@@ -33,19 +33,19 @@ StatisticsManager& RequestHandlerFactory::getStatisticsManager()
 	return m_statisticsManager;
 }
 
-RoomAdminRequestHandler* RequestHandlerFactory::createRoomAdminRequestHandler(const LoggedUser& user, Room& room)
+RoomAdminRequestHandler* RequestHandlerFactory::createRoomAdminRequestHandler(const LoggedUser& user, int roomId)
 {
-	return new RoomAdminRequestHandler(room, user, *this);
+	return new RoomAdminRequestHandler(roomId, user, *this);
 }
 
-RoomMemberRequestHandler* RequestHandlerFactory::createRoomMemberRequestHandler(const LoggedUser& user, Room& room)
+RoomMemberRequestHandler* RequestHandlerFactory::createRoomMemberRequestHandler(const LoggedUser& user, int roomId)
 {
-	return new RoomMemberRequestHandler(room, user, *this);
+	return new RoomMemberRequestHandler(roomId, user, *this);
 }
 
-GameRequestHandler* RequestHandlerFactory::createGameRequestHandler(const LoggedUser& user, Game& game)
+GameRequestHandler* RequestHandlerFactory::createGameRequestHandler(const LoggedUser& user, int roomId)
 {
-	return new GameRequestHandler(game, user, *this);
+	return new GameRequestHandler(roomId, user, *this);
 }
 
 GameManager& RequestHandlerFactory::getGameManager()

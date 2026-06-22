@@ -22,9 +22,6 @@ Server::~Server()
 {
 	try
 	{
-		delete m_communicator;
-		delete m_handlerFactory;
-		delete m_database;
 		WSACleanup();
 	}
 	catch (...) {}

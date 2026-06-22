@@ -24,7 +24,7 @@ partial class HighScoresForm
 
         // Form
         this.Text = "Trivia - High Scores";
-        this.Size = new Size(300, 270);
+        this.ClientSize = new Size(300, 245);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.FormBorderStyle = FormBorderStyle.FixedSingle;
         this.MaximizeBox = false;

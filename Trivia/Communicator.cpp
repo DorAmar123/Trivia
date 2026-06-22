@@ -17,6 +17,7 @@ Communicator::~Communicator()
 	try
 	{
 		closesocket(m_serverSocket);
+		std::lock_guard<std::mutex> lock(m_clientsMutex);
 		std::map<SOCKET, IRequestHandler*>::iterator it;
 		for (it = m_clients.begin(); it != m_clients.end(); it++)
 		{
@@ -61,7 +62,10 @@ void Communicator::bindAndListen()
 			continue;
 
 		std::cout << "Client connected." << std::endl;
-		m_clients[clientSocket] = m_handlerFactory->createLoginRequestHandler();
+		{
+			std::lock_guard<std::mutex> lock(m_clientsMutex);
+			m_clients[clientSocket] = m_handlerFactory->createLoginRequestHandler();
+		}
 
 		std::thread clientThread(&Communicator::handleNewClient, this, clientSocket);
 		clientThread.detach();
@@ -70,25 +74,37 @@ void Communicator::bindAndListen()
 
 void Communicator::handleNewClient(SOCKET clientSocket)
 {
+	const unsigned int MAX_MESSAGE_SIZE = 10u * 1024u * 1024u;
+
 	try
 	{
 		while (true)
 		{
-			char codeBuf[1] = { 0 };
-			if (recv(clientSocket, codeBuf, 1, 0) <= 0)
+			unsigned char codeBuf[1] = { 0 };
+			if (!recvAll(clientSocket, (char*)codeBuf, 1))
 			{
 				std::cout << "Client disconnected." << std::endl;
 				break;
 			}
 
-			char sizeBuf[4] = { 0 };
-			if (recv(clientSocket, sizeBuf, 4, 0) <= 0)
+			unsigned char sizeBuf[4] = { 0 };
+			if (!recvAll(clientSocket, (char*)sizeBuf, 4))
 				break;
 
-			int size = (sizeBuf[0] << 24) | (sizeBuf[1] << 16) | (sizeBuf[2] << 8) | sizeBuf[3];
+			unsigned int size =
+				((unsigned int)sizeBuf[0] << 24) |
+				((unsigned int)sizeBuf[1] << 16) |
+				((unsigned int)sizeBuf[2] << 8) |
+				((unsigned int)sizeBuf[3]);
+
+			if (size > MAX_MESSAGE_SIZE)
+			{
+				std::cout << "Message too large (" << size << " bytes), dropping client." << std::endl;
+				break;
+			}
 
 			std::vector<unsigned char> data(size);
-			if (size > 0 && recv(clientSocket, (char*)data.data(), size, 0) <= 0)
+			if (size > 0 && !recvAll(clientSocket, (char*)data.data(), (int)size))
 				break;
 
 			RequestInfo reqInfo;
@@ -96,34 +112,49 @@ void Communicator::handleNewClient(SOCKET clientSocket)
 			reqInfo.receivalTime = time(NULL);
 			reqInfo.buffer = data;
 
-			IRequestHandler* handler = m_clients[clientSocket];
-
-			if (handler->isRequestRelevant(reqInfo) == false)
+			IRequestHandler* handler = nullptr;
 			{
-				ErrorResponse err;
-				err.message = "Request not relevant to current state";
-				std::vector<unsigned char> errBytes = JsonResponsePacketSerializer::serializeErrorResponse(err);
-				int sentBytes = send(clientSocket, (char*)errBytes.data(), (int)errBytes.size(), 0);
-				if (sentBytes == SOCKET_ERROR)
-				{
-					std::cout << "Error sending message to client" << std::endl;
-					break;
-				}
-				continue;
+				std::lock_guard<std::mutex> lock(m_clientsMutex);
+				handler = m_clients[clientSocket];
 			}
 
-			RequestResult result = handler->handleRequest(reqInfo);
-			int sentBytes = send(clientSocket, (char*)result.response.data(), (int)result.response.size(), 0);
-			if (sentBytes == SOCKET_ERROR)
+			RequestResult result{};
+			result.newHandler = nullptr;
+			try
+			{
+				if (handler->isRequestRelevant(reqInfo) == false)
+				{
+					ErrorResponse err;
+					err.message = "Request not relevant to current state";
+					result.response = JsonResponsePacketSerializer::serializeErrorResponse(err);
+				}
+				else
+				{
+					result = handler->handleRequest(reqInfo);
+				}
+			}
+			catch (const std::exception& e)
+			{
+				ErrorResponse err;
+				err.message = std::string("Invalid request: ") + e.what();
+				result.response = JsonResponsePacketSerializer::serializeErrorResponse(err);
+				result.newHandler = nullptr;
+			}
+
+			if (!sendAll(clientSocket, (const char*)result.response.data(), (int)result.response.size()))
 			{
 				std::cout << "Error sending message to client" << std::endl;
 				break;
 			}
 
-			if (result.newHandler != nullptr && result.newHandler != m_clients[clientSocket])
+			if (result.newHandler != nullptr)
 			{
-				delete m_clients[clientSocket];
-				m_clients[clientSocket] = result.newHandler;
+				std::lock_guard<std::mutex> lock(m_clientsMutex);
+				if (result.newHandler != m_clients[clientSocket])
+				{
+					delete m_clients[clientSocket];
+					m_clients[clientSocket] = result.newHandler;
+				}
 			}
 		}
 	}
@@ -132,7 +163,43 @@ void Communicator::handleNewClient(SOCKET clientSocket)
 		std::cout << "Error in client thread: " << e.what() << std::endl;
 	}
 
-	delete m_clients[clientSocket];
-	m_clients.erase(clientSocket);
+	{
+		std::lock_guard<std::mutex> lock(m_clientsMutex);
+		auto it = m_clients.find(clientSocket);
+		if (it != m_clients.end())
+		{
+			std::string username = it->second->getLoggedUsername();
+			if (!username.empty())
+				m_handlerFactory->getLoginManager().logout(username);
+			delete it->second;
+			m_clients.erase(it);
+		}
+	}
 	closesocket(clientSocket);
+}
+
+bool Communicator::recvAll(SOCKET sock, char* buffer, int length)
+{
+	int total = 0;
+	while (total < length)
+	{
+		int bytes = recv(sock, buffer + total, length - total, 0);
+		if (bytes <= 0)
+			return false;
+		total += bytes;
+	}
+	return true;
+}
+
+bool Communicator::sendAll(SOCKET sock, const char* buffer, int length)
+{
+	int total = 0;
+	while (total < length)
+	{
+		int bytes = send(sock, buffer + total, length - total, 0);
+		if (bytes == SOCKET_ERROR)
+			return false;
+		total += bytes;
+	}
+	return true;
 }

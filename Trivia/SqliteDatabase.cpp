@@ -2,6 +2,9 @@
 #include "json.hpp"
 #include <iostream>
 #include <sstream>
+#include <vector>
+#include <random>
+#include <algorithm>
 #include <windows.h>
 #include <winhttp.h>
 #pragma comment(lib, "winhttp.lib")
@@ -147,6 +150,36 @@ std::vector<std::string> SqliteDatabase::getHighScores()
 	return scores;
 }
 
+bool SqliteDatabase::submitGameStats(const std::string& username, int correctAnswers, int wrongAnswers, float totalAnswerTime)
+{
+	runQuery("INSERT OR IGNORE INTO statistics (username) VALUES ('" + username + "');");
+
+	int oldCorrect = getNumOfCorrectAnswers(username);
+	int oldTotal = getNumOfTotalAnswers(username);
+	int oldGames = getNumOfPlayerGames(username);
+	int oldScore = getPlayerScore(username);
+	float oldAvg = getPlayerAverageAnswerTime(username);
+
+	int answered = correctAnswers + wrongAnswers;
+	int newCorrect = oldCorrect + correctAnswers;
+	int newTotal = oldTotal + answered;
+	int newGames = oldGames + 1;
+	int newScore = oldScore + correctAnswers * 10;
+
+	float oldTotalTime = oldAvg * oldTotal;
+	float newAvg = (newTotal > 0) ? (oldTotalTime + totalAnswerTime) / newTotal : 0.0f;
+
+	std::string q = "UPDATE statistics SET "
+		"correctAnswers = " + std::to_string(newCorrect) + ", "
+		"totalAnswers = " + std::to_string(newTotal) + ", "
+		"numGames = " + std::to_string(newGames) + ", "
+		"score = " + std::to_string(newScore) + ", "
+		"avgAnswerTime = " + std::to_string(newAvg) +
+		" WHERE username = '" + username + "';";
+
+	return runQuery(q) == SQLITE_OK;
+}
+
 std::string SqliteDatabase::fetchQuestionsJson()
 {
 	std::string result;
@@ -218,8 +251,24 @@ void SqliteDatabase::addQuestionsFromApi()
 			while (wrong.size() < 3)
 				wrong.push_back("N/A");
 
+			std::vector<std::string> options = { correct, wrong[0], wrong[1], wrong[2] };
+
+			static std::mt19937 rng(std::random_device{}());
+			std::shuffle(options.begin(), options.end(), rng);
+
+			int correctAnswerId = 1;
+			for (int i = 0; i < (int)options.size(); i++)
+			{
+				if (options[i] == correct)
+				{
+					correctAnswerId = i + 1;
+					break;
+				}
+			}
+
 			std::string q = "INSERT INTO questions (question, answer1, answer2, answer3, answer4, correctAnswerId) VALUES ('" +
-				question + "', '" + correct + "', '" + wrong[0] + "', '" + wrong[1] + "', '" + wrong[2] + "', 1);";
+				question + "', '" + options[0] + "', '" + options[1] + "', '" + options[2] + "', '" + options[3] + "', " +
+				std::to_string(correctAnswerId) + ");";
 			runQuery(q);
 		}
 	}

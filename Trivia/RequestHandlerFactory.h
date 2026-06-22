@@ -18,15 +18,15 @@ public:
 
 	LoginRequestHandler* createLoginRequestHandler();
 	MenuRequestHandler* createMenuRequestHandler(const LoggedUser& user);
-	GameRequestHandler* createGameRequestHandler(const LoggedUser& user, Game& game);
+	GameRequestHandler* createGameRequestHandler(const LoggedUser& user, int roomId);
 
 	LoginManager& getLoginManager();
 	RoomManager& getRoomManager();
 	StatisticsManager& getStatisticsManager();
 	GameManager& getGameManager();
 
-	RoomAdminRequestHandler* createRoomAdminRequestHandler(const LoggedUser& user, Room& room);
-	RoomMemberRequestHandler* createRoomMemberRequestHandler(const LoggedUser& user, Room& room);
+	RoomAdminRequestHandler* createRoomAdminRequestHandler(const LoggedUser& user, int roomId);
+	RoomMemberRequestHandler* createRoomMemberRequestHandler(const LoggedUser& user, int roomId);
 
 private:
 	IDatabase* m_database;

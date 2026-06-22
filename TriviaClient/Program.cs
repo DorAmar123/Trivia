@@ -6,6 +6,7 @@ static class Program
     static void Main()
     {
         ApplicationConfiguration.Initialize();
+        Application.ApplicationExit += (s, e) => AppState.Communicator.Disconnect();
         Application.Run(new LoginForm());
     }
 }

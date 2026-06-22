@@ -27,7 +27,7 @@ partial class GameForm
 
         // Form
         this.Text = "Trivia - Game";
-        this.Size = new Size(500, 460);
+        this.ClientSize = new Size(485, 372);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.FormBorderStyle = FormBorderStyle.FixedSingle;
         this.MaximizeBox = false;
@@ -35,8 +35,8 @@ partial class GameForm
         // lblTitle
         lblTitle.Text = "Trivia Game";
         lblTitle.Font = new Font("Microsoft Sans Serif", 13F, FontStyle.Bold);
-        lblTitle.Location = new Point(150, 12);
-        lblTitle.Size = new Size(200, 26);
+        lblTitle.Location = new Point(195, 12);
+        lblTitle.Size = new Size(150, 26);
         lblTitle.TextAlign = ContentAlignment.MiddleCenter;
 
         // lblTimer
@@ -48,10 +48,10 @@ partial class GameForm
         lblTimer.TextAlign = ContentAlignment.MiddleRight;
 
         // lblScore
-        lblScore.Text = "Correct: 0 / 0";
+        lblScore.Text = "Correct: 0   Wrong: 0";
         lblScore.Font = new Font("Microsoft Sans Serif", 9F);
         lblScore.Location = new Point(15, 15);
-        lblScore.Size = new Size(130, 22);
+        lblScore.Size = new Size(170, 22);
         lblScore.TextAlign = ContentAlignment.MiddleLeft;
 
         // lblQuestion

@@ -10,14 +10,14 @@ public partial class MainMenuForm : Form
 
     private void btnCreateRoom_Click(object sender, EventArgs e)
     {
-        CreateRoomForm createRoom = new CreateRoomForm();
+        CreateRoomForm createRoom = new CreateRoomForm(this);
         createRoom.Show();
         this.Hide();
     }
 
     private void btnJoinRoom_Click(object sender, EventArgs e)
     {
-        JoinRoomForm joinRoom = new JoinRoomForm();
+        JoinRoomForm joinRoom = new JoinRoomForm(this);
         joinRoom.Show();
         this.Hide();
     }

@@ -35,7 +35,11 @@ std::vector<RoomData> RoomManager::getRooms() const
 	std::lock_guard<std::mutex> lock(m_mutex);
 	std::vector<RoomData> rooms;
 	for (const auto& pair : m_rooms)
-		rooms.push_back(pair.second.getMetadata());
+	{
+		RoomData data = pair.second.getMetadata();
+		if (data.status == ROOM_OPEN)
+			rooms.push_back(data);
+	}
 	return rooms;
 }
 

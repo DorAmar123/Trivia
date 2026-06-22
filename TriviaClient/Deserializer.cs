@@ -65,7 +65,17 @@ public static class Deserializer
         if (size > 0 && packet.Length >= 5 + size)
             json = System.Text.Encoding.UTF8.GetString(packet, 5, size);
 
-        JsonElement data = JsonDocument.Parse(json).RootElement;
+        JsonElement data;
+        try
+        {
+            using JsonDocument doc = JsonDocument.Parse(json);
+            data = doc.RootElement.Clone();
+        }
+        catch
+        {
+            using JsonDocument doc = JsonDocument.Parse("{}");
+            data = doc.RootElement.Clone();
+        }
         return new ServerResponse { Code = code, Data = data };
     }
 
@@ -129,6 +139,20 @@ public static class Deserializer
         if (response.Data.TryGetProperty("hasGameBegun", out JsonElement hasBegun))
             return hasBegun.GetBoolean();
         return false;
+    }
+
+    public static int GetCorrectAnswerId(ServerResponse response)
+    {
+        if (response.Data.TryGetProperty("correctAnswerId", out JsonElement id))
+            return id.GetInt32();
+        return 0;
+    }
+
+    public static int GetAnswerTimeout(ServerResponse response)
+    {
+        if (response.Data.TryGetProperty("answerTimeout", out JsonElement t))
+            return t.GetInt32();
+        return 0;
     }
 
     public static List<string> GetRoomStatePlayers(ServerResponse response)

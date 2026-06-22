@@ -19,6 +19,8 @@ partial class CreateRoomForm
         lblTimePerQuestion = new Label();
         txtTimePerQuestion = new TextBox();
         lblSeconds = new Label();
+        lblQuestionCount = new Label();
+        txtQuestionCount = new TextBox();
         lblMaxPlayers = new Label();
         txtMaxPlayers = new TextBox();
         btnCreate = new Button();
@@ -28,7 +30,7 @@ partial class CreateRoomForm
 
         // Form
         this.Text = "Trivia - Create Room";
-        this.Size = new Size(320, 290);
+        this.ClientSize = new Size(310, 316);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.FormBorderStyle = FormBorderStyle.FixedSingle;
         this.MaximizeBox = false;
@@ -64,25 +66,35 @@ partial class CreateRoomForm
         lblSeconds.Location = new Point(218, 100);
         lblSeconds.Size = new Size(60, 20);
 
+        // lblQuestionCount
+        lblQuestionCount.Text = "Questions:";
+        lblQuestionCount.Location = new Point(30, 140);
+        lblQuestionCount.Size = new Size(90, 20);
+
+        // txtQuestionCount
+        txtQuestionCount.Location = new Point(130, 137);
+        txtQuestionCount.Size = new Size(80, 23);
+        txtQuestionCount.Text = "10";
+
         // lblMaxPlayers
         lblMaxPlayers.Text = "Max Players:";
-        lblMaxPlayers.Location = new Point(30, 140);
+        lblMaxPlayers.Location = new Point(30, 180);
         lblMaxPlayers.Size = new Size(90, 20);
 
         // txtMaxPlayers
-        txtMaxPlayers.Location = new Point(130, 137);
+        txtMaxPlayers.Location = new Point(130, 177);
         txtMaxPlayers.Size = new Size(80, 23);
         txtMaxPlayers.Text = "4";
 
         // btnCreate
         btnCreate.Text = "Create Room";
-        btnCreate.Location = new Point(85, 185);
+        btnCreate.Location = new Point(85, 225);
         btnCreate.Size = new Size(130, 35);
         btnCreate.Click += btnCreate_Click;
 
         // btnBack
         btnBack.Text = "Back";
-        btnBack.Location = new Point(110, 230);
+        btnBack.Location = new Point(110, 270);
         btnBack.Size = new Size(80, 26);
         btnBack.Click += btnBack_Click;
 
@@ -92,6 +104,8 @@ partial class CreateRoomForm
         this.Controls.Add(lblTimePerQuestion);
         this.Controls.Add(txtTimePerQuestion);
         this.Controls.Add(lblSeconds);
+        this.Controls.Add(lblQuestionCount);
+        this.Controls.Add(txtQuestionCount);
         this.Controls.Add(lblMaxPlayers);
         this.Controls.Add(txtMaxPlayers);
         this.Controls.Add(btnCreate);
@@ -106,6 +120,8 @@ partial class CreateRoomForm
     private Label lblTimePerQuestion;
     private TextBox txtTimePerQuestion;
     private Label lblSeconds;
+    private Label lblQuestionCount;
+    private TextBox txtQuestionCount;
     private Label lblMaxPlayers;
     private TextBox txtMaxPlayers;
     private Button btnCreate;

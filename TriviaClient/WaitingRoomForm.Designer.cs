@@ -27,7 +27,7 @@ partial class WaitingRoomForm
 
         // Form
         this.Text = "Trivia - Waiting Room";
-        this.Size = new Size(300, 400);
+        this.ClientSize = new Size(300, 385);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.FormBorderStyle = FormBorderStyle.FixedSingle;
         this.MaximizeBox = false;

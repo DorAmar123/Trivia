@@ -5,14 +5,17 @@ public partial class WaitingRoomForm : Form
     private Thread _refreshThread;
     private bool _isWindowActive = true;
     private readonly bool _isAdmin;
+    private bool _roomExitHandled = false;
+    private bool _enteringGame = false;
 
     public WaitingRoomForm(string roomName, string adminName, bool isAdmin = false)
     {
         InitializeComponent();
         _isAdmin = isAdmin;
         lblRoomName.Text = "Room: " + roomName;
-        lblAdmin.Text = "Admin: " + adminName;
-        lstPlayers.Items.Add(adminName);
+        lblAdmin.Text = "Admin: " + (adminName == "" ? "(loading...)" : adminName);
+        if (adminName != "")
+            lstPlayers.Items.Add(adminName);
 
         if (_isAdmin)
         {
@@ -26,16 +29,24 @@ public partial class WaitingRoomForm : Form
         _refreshThread.Start();
     }
 
+    private void LeaveRoomOnce()
+    {
+        if (_roomExitHandled) return;
+        _roomExitHandled = true;
+        try
+        {
+            if (_isAdmin)
+                AppState.Communicator.SendAndReceive(Serializer.SerializeCloseRoom());
+            else
+                AppState.Communicator.SendAndReceive(Serializer.SerializeLeaveRoom());
+        }
+        catch { }
+    }
+
     private void btnLeave_Click(object sender, EventArgs e)
     {
         _isWindowActive = false;
-
-        try
-        {
-            AppState.Communicator.SendAndReceive(Serializer.SerializeLeaveRoom());
-        }
-        catch { }
-
+        LeaveRoomOnce();
         BackToMenu();
     }
 
@@ -50,6 +61,7 @@ public partial class WaitingRoomForm : Form
             if (Deserializer.GetStatus(response) == 1)
             {
                 _isWindowActive = false;
+                _enteringGame = true;
                 OpenGameScreen();
             }
             else
@@ -68,13 +80,7 @@ public partial class WaitingRoomForm : Form
     private void btnCloseRoom_Click(object sender, EventArgs e)
     {
         _isWindowActive = false;
-
-        try
-        {
-            AppState.Communicator.SendAndReceive(Serializer.SerializeCloseRoom());
-        }
-        catch { }
-
+        LeaveRoomOnce();
         BackToMenu();
     }
 
@@ -86,11 +92,16 @@ public partial class WaitingRoomForm : Form
             {
                 ServerResponse response = AppState.Communicator.SendAndReceive(Serializer.SerializeGetRoomState());
 
+                int serverTimeout = Deserializer.GetAnswerTimeout(response);
+                if (serverTimeout > 0)
+                    AppState.AnswerTimeoutSeconds = serverTimeout;
+
                 if (Deserializer.GetStatus(response) == 0)
                 {
                     _isWindowActive = false;
                     this.Invoke((MethodInvoker)delegate {
                         MessageBox.Show("The admin closed the room.", "Room Closed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        LeaveRoomOnce();
                         BackToMenu();
                     });
                     break;
@@ -100,6 +111,7 @@ public partial class WaitingRoomForm : Form
                 {
                     _isWindowActive = false;
                     this.Invoke((MethodInvoker)delegate {
+                        _enteringGame = true;
                         OpenGameScreen();
                     });
                     break;
@@ -126,6 +138,9 @@ public partial class WaitingRoomForm : Form
         {
             lstPlayers.Items.Add(player);
         }
+
+        if (!_isAdmin && players.Count > 0)
+            lblAdmin.Text = "Admin: " + players[0];
     }
 
     private void OpenGameScreen()
@@ -145,6 +160,8 @@ public partial class WaitingRoomForm : Form
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
         _isWindowActive = false;
+        if (!_enteringGame)
+            LeaveRoomOnce();
         base.OnFormClosing(e);
     }
 }

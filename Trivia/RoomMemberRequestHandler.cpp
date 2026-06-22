@@ -8,8 +8,8 @@
 #define LEAVE_ROOM_CODE      13
 #define GET_ROOM_STATE_CODE  14
 
-RoomMemberRequestHandler::RoomMemberRequestHandler(Room& room, const LoggedUser& user, RequestHandlerFactory& handlerFactory)
-    : m_room(room), m_user(user), m_handlerFactory(handlerFactory)
+RoomMemberRequestHandler::RoomMemberRequestHandler(int roomId, const LoggedUser& user, RequestHandlerFactory& handlerFactory)
+    : m_roomId(roomId), m_user(user), m_handlerFactory(handlerFactory)
 {
 }
 
@@ -32,7 +32,13 @@ RequestResult RoomMemberRequestHandler::handleRequest(const RequestInfo& request
 
 RequestResult RoomMemberRequestHandler::leaveRoom(const RequestInfo& requestInfo)
 {
-    m_room.removeUser(m_user.getUsername());
+    try
+    {
+        m_handlerFactory.getRoomManager().getRoom(m_roomId).removeUser(m_user.getUsername());
+    }
+    catch (...)
+    {
+    }
 
     LeaveRoomResponse res = { 1 };
 
@@ -44,20 +50,30 @@ RequestResult RoomMemberRequestHandler::getRoomState(const RequestInfo& requestI
 {
     GetRoomStateResponse res;
 
-    RoomData metadata = m_room.getMetadata();
-    RoomStatus state = m_handlerFactory.getRoomManager().getRoomState(metadata.id);
+    RoomStatus state = ROOM_CLOSE;
+    try
+    {
+        Room& room = m_handlerFactory.getRoomManager().getRoom(m_roomId);
+        RoomData metadata = room.getMetadata();
+        state = m_handlerFactory.getRoomManager().getRoomState(m_roomId);
 
-    res.status = (state == ROOM_CLOSE) ? 0 : 1;
-    res.hasGameBegun = (state == ROOM_ACTIVE);
-    res.players = m_room.getAllUsers();
-    res.answerCount = metadata.numOfQuestionsInGame;
-    res.answerTimeout = metadata.timePerQuestion;
+        res.status = (state == ROOM_CLOSE) ? 0 : 1;
+        res.hasGameBegun = (state == ROOM_ACTIVE);
+        res.players = room.getAllUsers();
+        res.answerCount = metadata.numOfQuestionsInGame;
+        res.answerTimeout = metadata.timePerQuestion;
+    }
+    catch (...)
+    {
+        res.status = 0;
+        res.hasGameBegun = false;
+        return { JsonResponsePacketSerializer::serializeGetRoomStateResponse(res), this };
+    }
 
     IRequestHandler* nextHandler = this;
-    if (state == ROOM_ACTIVE && m_handlerFactory.getGameManager().doesGameExist(metadata.id))
+    if (state == ROOM_ACTIVE && m_handlerFactory.getGameManager().doesGameExist(m_roomId))
     {
-        Game& game = m_handlerFactory.getGameManager().getGame(metadata.id);
-        nextHandler = m_handlerFactory.createGameRequestHandler(m_user, game);
+        nextHandler = m_handlerFactory.createGameRequestHandler(m_user, m_roomId);
     }
 
     return { JsonResponsePacketSerializer::serializeGetRoomStateResponse(res), nextHandler };

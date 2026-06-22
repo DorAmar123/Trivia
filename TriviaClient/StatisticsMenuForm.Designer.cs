@@ -21,7 +21,7 @@ partial class StatisticsMenuForm
         SuspendLayout();
 
         this.Text = "Trivia - Statistics";
-        this.Size = new Size(280, 240);
+        this.ClientSize = new Size(280, 216);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.FormBorderStyle = FormBorderStyle.FixedSingle;
         this.MaximizeBox = false;
