@@ -48,8 +48,6 @@ struct GetRoomStateRequest
 
 struct LeaveRoomRequest
 {
-<<<<<<< HEAD
-=======
 };
 
 struct SubmitAnswerRequest
@@ -67,5 +65,4 @@ struct GetQuestionRequest
 
 struct GetGameResultRequest
 {
->>>>>>> d28f809 (Add v4 request structs and SubmitAnswer deserialization)
 };
