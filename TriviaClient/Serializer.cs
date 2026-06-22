@@ -17,7 +17,11 @@ public enum RequestCode
     CloseRoom = 11,
     StartGame = 12,
     LeaveRoom = 13,
-    GetRoomState = 14
+    GetRoomState = 14,
+    LeaveGame = 15,
+    GetQuestion = 16,
+    SubmitAnswer = 17,
+    GetGameResults = 18
 }
 
 public static class Serializer
@@ -102,5 +106,25 @@ public static class Serializer
     public static byte[] SerializeGetRoomState()
     {
         return Serialize(RequestCode.GetRoomState, new { });
+    }
+
+    public static byte[] SerializeLeaveGame()
+    {
+        return Serialize(RequestCode.LeaveGame, new { });
+    }
+
+    public static byte[] SerializeGetQuestion()
+    {
+        return Serialize(RequestCode.GetQuestion, new { });
+    }
+
+    public static byte[] SerializeSubmitAnswer(int answerId)
+    {
+        return Serialize(RequestCode.SubmitAnswer, new { answerId });
+    }
+
+    public static byte[] SerializeGetGameResults()
+    {
+        return Serialize(RequestCode.GetGameResults, new { });
     }
 }

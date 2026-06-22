@@ -17,7 +17,11 @@ public enum ResponseCode
     CloseRoom = 11,
     StartGame = 12,
     LeaveRoom = 13,
-    GetRoomState = 14
+    GetRoomState = 14,
+    LeaveGame = 15,
+    GetQuestion = 16,
+    SubmitAnswer = 17,
+    GetGameResults = 18
 }
 
 public class ServerResponse
@@ -31,6 +35,20 @@ public class RoomInfo
     public int Id { get; set; }
     public string Name { get; set; } = "";
     public int MaxPlayers { get; set; }
+}
+
+public class QuestionData
+{
+    public string Question { get; set; } = "";
+    public Dictionary<int, string> Answers { get; set; } = new();
+}
+
+public class PlayerResult
+{
+    public string Username { get; set; } = "";
+    public int CorrectAnswerCount { get; set; }
+    public int WrongAnswerCount { get; set; }
+    public float AverageAnswerTime { get; set; }
 }
 
 public static class Deserializer
@@ -120,5 +138,32 @@ public static class Deserializer
             foreach (var item in arr.EnumerateArray())
                 players.Add(item.GetString() ?? "");
         return players;
+    }
+
+    public static QuestionData GetQuestion(ServerResponse response)
+    {
+        var qd = new QuestionData();
+        if (response.Data.TryGetProperty("question", out JsonElement q))
+            qd.Question = q.GetString() ?? "";
+        if (response.Data.TryGetProperty("answers", out JsonElement answers))
+            foreach (var prop in answers.EnumerateObject())
+                if (int.TryParse(prop.Name, out int key))
+                    qd.Answers[key] = prop.Value.GetString() ?? "";
+        return qd;
+    }
+
+    public static List<PlayerResult> GetGameResults(ServerResponse response)
+    {
+        var results = new List<PlayerResult>();
+        if (response.Data.TryGetProperty("results", out JsonElement arr))
+            foreach (var item in arr.EnumerateArray())
+                results.Add(new PlayerResult
+                {
+                    Username = item.TryGetProperty("username", out var u) ? u.GetString() ?? "" : "",
+                    CorrectAnswerCount = item.TryGetProperty("correctAnswerCount", out var c) ? c.GetInt32() : 0,
+                    WrongAnswerCount = item.TryGetProperty("wrongAnswerCount", out var w) ? w.GetInt32() : 0,
+                    AverageAnswerTime = item.TryGetProperty("averageAnswerTime", out var t) ? t.GetSingle() : 0f
+                });
+        return results;
     }
 }

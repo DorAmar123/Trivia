@@ -51,7 +51,7 @@ public partial class WaitingRoomForm : Form
                 {
                     _isWindowActive = false;
                     this.Invoke((MethodInvoker)delegate {
-                        MessageBox.Show("Game is starting!", "Start Game");
+                        OpenGameScreen();
                     });
                     break;
                 }
@@ -66,7 +66,7 @@ public partial class WaitingRoomForm : Form
                 Console.WriteLine("Refresh error: " + ex.Message);
             }
 
-            Thread.Sleep(3000); 
+            Thread.Sleep(3000);
         }
     }
 
@@ -77,6 +77,13 @@ public partial class WaitingRoomForm : Form
         {
             lstPlayers.Items.Add(player);
         }
+    }
+
+    private void OpenGameScreen()
+    {
+        GameForm game = new GameForm();
+        game.Show();
+        this.Close();
     }
 
     private void BackToMenu()
