@@ -48,4 +48,24 @@ struct GetRoomStateRequest
 
 struct LeaveRoomRequest
 {
+<<<<<<< HEAD
+=======
+};
+
+struct SubmitAnswerRequest
+{
+	unsigned int answerId;
+};
+
+struct LeaveGameRequest
+{
+};
+
+struct GetQuestionRequest
+{
+};
+
+struct GetGameResultRequest
+{
+>>>>>>> d28f809 (Add v4 request structs and SubmitAnswer deserialization)
 };
