@@ -12,7 +12,10 @@ Game& GameManager::createGame(Room& room)
 	std::vector<Question> questions = m_database->getQuestions(metadata.numOfQuestionsInGame);
 	std::vector<std::string> players = room.getAllUsers();
 
-	m_games.emplace(metadata.id, Game(questions, players));
+	m_games.emplace(
+		std::piecewise_construct,
+		std::forward_as_tuple(metadata.id),
+		std::forward_as_tuple(questions, players));
 	return m_games.at(metadata.id);
 }
 

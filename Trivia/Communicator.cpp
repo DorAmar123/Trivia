@@ -120,7 +120,7 @@ void Communicator::handleNewClient(SOCKET clientSocket)
 				break;
 			}
 
-			if (result.newHandler != nullptr)
+			if (result.newHandler != nullptr && result.newHandler != m_clients[clientSocket])
 			{
 				delete m_clients[clientSocket];
 				m_clients[clientSocket] = result.newHandler;

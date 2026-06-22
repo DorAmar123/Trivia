@@ -1,7 +1,7 @@
 #include "RoomManager.h"
 #include <stdexcept>
 
-void RoomManager::createRoom(const LoggedUser& creator, const RoomData& roomData)
+int RoomManager::createRoom(const LoggedUser& creator, const RoomData& roomData)
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
 	RoomData data = roomData;
@@ -12,6 +12,7 @@ void RoomManager::createRoom(const LoggedUser& creator, const RoomData& roomData
 		std::forward_as_tuple(data.id),
 		std::forward_as_tuple(creator, data)
 	);
+	return data.id;
 }
 
 void RoomManager::deleteRoom(int roomId)
