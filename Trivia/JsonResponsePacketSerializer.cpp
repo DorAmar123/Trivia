@@ -17,6 +17,10 @@ using json = nlohmann::json;
 #define START_GAME_CODE          12
 #define LEAVE_ROOM_CODE          13
 #define GET_ROOM_STATE_CODE      14
+#define LEAVE_GAME_CODE          15
+#define GET_QUESTION_CODE        16
+#define SUBMIT_ANSWER_CODE       17
+#define GET_GAME_RESULTS_CODE    18
 							     
 std::vector<unsigned char> JsonResponsePacketSerializer::buildPacket(unsigned char code, const std::string& jsonStr)
 {
@@ -148,4 +152,48 @@ std::vector<unsigned char> JsonResponsePacketSerializer::serializeGetRoomStateRe
 	j["answerCount"] = response.answerCount;
 	j["answerTimeout"] = response.answerTimeout;
 	return buildPacket(GET_ROOM_STATE_CODE, j.dump());
+}
+
+std::vector<unsigned char> JsonResponsePacketSerializer::serializeLeaveGameResponse(const LeaveGameResponse& response)
+{
+	json j;
+	j["status"] = response.status;
+	return buildPacket(LEAVE_GAME_CODE, j.dump());
+}
+
+std::vector<unsigned char> JsonResponsePacketSerializer::serializeSubmitAnswerResponse(const SubmitAnswerResponse& response)
+{
+	json j;
+	j["status"] = response.status;
+	return buildPacket(SUBMIT_ANSWER_CODE, j.dump());
+}
+
+std::vector<unsigned char> JsonResponsePacketSerializer::serializeGetQuestionResponse(const GetQuestionResponse& response)
+{
+	json j;
+	j["status"] = response.status;
+	j["question"] = response.question;
+	json answers;
+	for (const auto& pair : response.answers)
+		answers[std::to_string(pair.first)] = pair.second;
+	j["answers"] = answers;
+	return buildPacket(GET_QUESTION_CODE, j.dump());
+}
+
+std::vector<unsigned char> JsonResponsePacketSerializer::serializeGetGameResultsResponse(const GetGameResultsResponse& response)
+{
+	json j;
+	j["status"] = response.status;
+	json results = json::array();
+	for (const PlayerResult& pr : response.results)
+	{
+		json r;
+		r["username"] = pr.username;
+		r["correctAnswerCount"] = pr.correctAnswerCount;
+		r["wrongAnswerCount"] = pr.wrongAnswerCount;
+		r["averageAnswerTime"] = pr.averageAnswerTime;
+		results.push_back(r);
+	}
+	j["results"] = results;
+	return buildPacket(GET_GAME_RESULTS_CODE, j.dump());
 }
