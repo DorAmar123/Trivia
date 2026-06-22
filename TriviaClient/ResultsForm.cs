@@ -3,11 +3,19 @@ namespace TriviaClient;
 public partial class ResultsForm : Form
 {
     private readonly List<PlayerResult> _results;
+    private bool _leftGame = false;
 
     public ResultsForm(List<PlayerResult> results)
     {
         InitializeComponent();
         _results = results;
+    }
+
+    private void SendLeaveGameOnce()
+    {
+        if (_leftGame) return;
+        _leftGame = true;
+        try { AppState.Communicator.SendAndReceive(Serializer.SerializeLeaveGame()); } catch { }
     }
 
     protected override void OnLoad(EventArgs e)
@@ -58,8 +66,15 @@ public partial class ResultsForm : Form
 
     private void btnBackToMenu_Click(object sender, EventArgs e)
     {
+        SendLeaveGameOnce();
         MainMenuForm menu = new MainMenuForm();
         menu.Show();
         this.Close();
+    }
+
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        SendLeaveGameOnce();
+        base.OnFormClosing(e);
     }
 }

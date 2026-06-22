@@ -26,7 +26,7 @@ partial class LoginForm
 
         // Form
         this.Text = "Trivia - Login";
-        this.Size = new Size(320, 280);
+        this.ClientSize = new Size(320, 232);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.FormBorderStyle = FormBorderStyle.FixedSingle;
         this.MaximizeBox = false;

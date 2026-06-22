@@ -36,3 +36,14 @@ bool GameManager::doesGameExist(int roomId) const
 	std::lock_guard<std::mutex> lock(m_mutex);
 	return m_games.find(roomId) != m_games.end();
 }
+
+void GameManager::submitPlayerStats(int roomId, const std::string& username)
+{
+	std::lock_guard<std::mutex> lock(m_mutex);
+	auto it = m_games.find(roomId);
+	if (it == m_games.end())
+		return;
+
+	PlayerGameData data = it->second.getPlayerData(username);
+	m_database->submitGameStats(username, data.correctAnswers, data.wrongAnswers, data.totalAnswerTime);
+}

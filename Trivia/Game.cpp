@@ -12,7 +12,13 @@ GetQuestionResponse Game::getQuestionForUser(const std::string& username)
 	std::lock_guard<std::mutex> lock(m_mutex);
 
 	GetQuestionResponse res;
-	PlayerGameData& data = m_players[username];
+	auto it = m_players.find(username);
+	if (it == m_players.end())
+	{
+		res.status = 0;
+		return res;
+	}
+	PlayerGameData& data = it->second;
 
 	if (data.currentQuestionIndex >= m_questions.size())
 	{
@@ -36,7 +42,13 @@ SubmitAnswerResponse Game::submitAnswer(const std::string& username, unsigned in
 	std::lock_guard<std::mutex> lock(m_mutex);
 
 	SubmitAnswerResponse res;
-	PlayerGameData& data = m_players[username];
+	auto it = m_players.find(username);
+	if (it == m_players.end())
+	{
+		res.status = 0;
+		return res;
+	}
+	PlayerGameData& data = it->second;
 
 	if (data.currentQuestionIndex >= m_questions.size())
 	{
@@ -55,6 +67,7 @@ SubmitAnswerResponse Game::submitAnswer(const std::string& username, unsigned in
 	data.currentQuestionIndex++;
 
 	res.status = 1;
+	res.correctAnswerId = q.getCorrectAnswerId();
 	return res;
 }
 
@@ -87,8 +100,20 @@ GetGameResultsResponse Game::getResults() const
 	return res;
 }
 
+PlayerGameData Game::getPlayerData(const std::string& username) const
+{
+	std::lock_guard<std::mutex> lock(m_mutex);
+	auto it = m_players.find(username);
+	if (it == m_players.end())
+		return { 0, 0, 0, 0.0f };
+	return it->second;
+}
+
 bool Game::isOver() const
 {
+	if (m_players.empty())
+		return false;
+
 	for (const auto& pair : m_players)
 		if (pair.second.currentQuestionIndex < m_questions.size())
 			return false;

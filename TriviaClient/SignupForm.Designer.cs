@@ -29,7 +29,7 @@ partial class SignupForm
 
         // Form
         this.Text = "Trivia - Sign Up";
-        this.Size = new Size(320, 340);
+        this.ClientSize = new Size(310, 308);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.FormBorderStyle = FormBorderStyle.FixedSingle;
         this.MaximizeBox = false;

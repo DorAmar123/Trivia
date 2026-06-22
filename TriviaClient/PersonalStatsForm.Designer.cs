@@ -25,7 +25,7 @@ partial class PersonalStatsForm
 
         // Form
         this.Text = "Trivia - Personal Statistics";
-        this.Size = new Size(300, 300);
+        this.ClientSize = new Size(300, 278);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.FormBorderStyle = FormBorderStyle.FixedSingle;
         this.MaximizeBox = false;

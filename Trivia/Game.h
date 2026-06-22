@@ -23,6 +23,7 @@ public:
 	SubmitAnswerResponse submitAnswer(const std::string& username, unsigned int answerId, float timeSpent);
 	GetGameResultsResponse getResults() const;
 	bool isOver() const;
+	PlayerGameData getPlayerData(const std::string& username) const;
 
 private:
 	std::vector<Question> m_questions;

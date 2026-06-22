@@ -24,7 +24,7 @@ partial class MainMenuForm
 
         // Form
         this.Text = "Trivia - Main Menu";
-        this.Size = new Size(300, 320);
+        this.ClientSize = new Size(300, 295);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.FormBorderStyle = FormBorderStyle.FixedSingle;
         this.MaximizeBox = false;
@@ -38,8 +38,9 @@ partial class MainMenuForm
 
         // lblWelcome
         lblWelcome.Text = "Welcome!";
-        lblWelcome.Location = new Point(105, 55);
-        lblWelcome.Size = new Size(90, 20);
+        lblWelcome.Font = new Font("Microsoft Sans Serif", 9.75F, FontStyle.Bold);
+        lblWelcome.Location = new Point(10, 55);
+        lblWelcome.Size = new Size(274, 22);
         lblWelcome.TextAlign = ContentAlignment.MiddleCenter;
 
         // btnCreateRoom
