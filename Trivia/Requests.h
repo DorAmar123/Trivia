@@ -49,3 +49,20 @@ struct GetRoomStateRequest
 struct LeaveRoomRequest
 {
 };
+
+struct SubmitAnswerRequest
+{
+	unsigned int answerId;
+};
+
+struct LeaveGameRequest
+{
+};
+
+struct GetQuestionRequest
+{
+};
+
+struct GetGameResultRequest
+{
+};
