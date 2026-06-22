@@ -2,10 +2,12 @@
 #include "RequestHandlerFactory.h"
 #include "JsonResponsePacketSerializer.h"
 #include "MenuRequestHandler.h"
+#include "GameRequestHandler.h"
 
-#define CLOSE_ROOM_CODE   11
-#define START_GAME_CODE   12
-#define LEAVE_ROOM_CODE   13
+#define CLOSE_ROOM_CODE      11
+#define START_GAME_CODE      12
+#define LEAVE_ROOM_CODE      13
+#define GET_ROOM_STATE_CODE  14
 
 RoomAdminRequestHandler::RoomAdminRequestHandler(Room& room, const LoggedUser& user, RequestHandlerFactory& handlerFactory)
     : m_room(room), m_user(user), m_handlerFactory(handlerFactory)
@@ -16,7 +18,7 @@ bool RoomAdminRequestHandler::isRequestRelevant(const RequestInfo& requestInfo)
 {
     return requestInfo.id == CLOSE_ROOM_CODE ||
         requestInfo.id == START_GAME_CODE ||
-        requestInfo.id == LEAVE_ROOM_CODE;
+        requestInfo.id == GET_ROOM_STATE_CODE;
 }
 
 RequestResult RoomAdminRequestHandler::handleRequest(const RequestInfo& requestInfo)
@@ -25,7 +27,7 @@ RequestResult RoomAdminRequestHandler::handleRequest(const RequestInfo& requestI
         return closeRoom(requestInfo);
     if (requestInfo.id == START_GAME_CODE)
         return startGame(requestInfo);
-    if (requestInfo.id == LEAVE_ROOM_CODE)
+    if (requestInfo.id == GET_ROOM_STATE_CODE)
         return getRoomState(requestInfo);
 
     ErrorResponse err = { "Unknown request for Room Admin" };
@@ -44,19 +46,24 @@ RequestResult RoomAdminRequestHandler::closeRoom(const RequestInfo& requestInfo)
 
 RequestResult RoomAdminRequestHandler::startGame(const RequestInfo& requestInfo)
 {
+    m_handlerFactory.getRoomManager().setRoomState(m_room.getMetadata().id, ROOM_ACTIVE);
+    Game& game = m_handlerFactory.getGameManager().createGame(m_room);
+
     StartGameResponse res = { 1 };
 
-    return { JsonResponsePacketSerializer::serializeStartGameResponse(res), nullptr };
+    return { JsonResponsePacketSerializer::serializeStartGameResponse(res),
+             m_handlerFactory.createGameRequestHandler(m_user, game) };
 }
 
 RequestResult RoomAdminRequestHandler::getRoomState(const RequestInfo& requestInfo)
 {
     GetRoomStateResponse res;
-    res.status = 1;
 
     RoomData metadata = m_room.getMetadata();
+    RoomStatus state = m_handlerFactory.getRoomManager().getRoomState(metadata.id);
 
-    res.hasGameBegun = false;
+    res.status = 1;
+    res.hasGameBegun = (state == ROOM_ACTIVE);
     res.players = m_room.getAllUsers();
     res.answerCount = metadata.numOfQuestionsInGame;
     res.answerTimeout = metadata.timePerQuestion;
